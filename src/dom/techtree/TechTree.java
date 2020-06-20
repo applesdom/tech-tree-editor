@@ -49,6 +49,25 @@ public class TechTree {
 		partMap.put(part.name, part);
 	}
 	
+	public void removePart(String name) {
+		partMap.remove(name);
+	}
+	
+	public void removePart(PartInfo part) {
+		partMap.remove(part.name);
+	}
+	
+	public PartInfo getPart(String name) {
+		PartInfo part = partMap.get(name);
+		if(part.name.equals(name)) {
+			return part;
+		} else {
+			removePart(part);
+			addPart(part);
+			return null;
+		}
+	}
+	
 	public Collection<PartInfo> getPartList() {
 		return partMap.values();
 	}
