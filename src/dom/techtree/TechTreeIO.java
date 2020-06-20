@@ -26,62 +26,242 @@ public class TechTreeIO {
 	}
 	
 	public static TechTree read(TechTree tree, InputStream in) throws IOException {
-		// Consume lines until "TechTree" token found
 		BufferedReader br = new BufferedReader(new InputStreamReader(in));
-		String line = "";
-		while(!line.trim().startsWith("TechTree") && !line.trim().startsWith("﻿TechTree")) {
+		String line, token;
+		
+		// Parse each TechTree or part definition
+		while(true) {
 			line = br.readLine();
 			if(line == null) {
-				return tree;
+				break;
 			}
-		}
-		
-		// Consume opening parenthesis
-		br.readLine();
-		
-		// Parse each node definition
-		while(br.readLine().trim().startsWith("RDNode")) {
-			// Consume opening parenthesis
-			br.readLine();
+			token = line.split("//")[0].trim();
 			
-			// Create a new node and set attributes
-			Node node = new Node();
-			node.id = parseFieldValuePair(br.readLine())[1];
-			node.title = parseFieldValuePair(br.readLine())[1];
-			node.description = parseFieldValuePair(br.readLine())[1];
-			node.cost = Integer.parseInt(parseFieldValuePair(br.readLine())[1]);
-			node.hideEmpty = Boolean.parseBoolean(parseFieldValuePair(br.readLine())[1]);
-			node.nodeName = parseFieldValuePair(br.readLine())[1];
-			node.anyToUnlock = Boolean.parseBoolean(parseFieldValuePair(br.readLine())[1]);
-			node.icon = parseFieldValuePair(br.readLine())[1];
-			String[] posSplit = parseFieldValuePair(br.readLine())[1].split(",");
-			node.pos.x = Double.parseDouble(posSplit[0]);
-			node.pos.y = Double.parseDouble(posSplit[1]);
-			node.zPos = Double.parseDouble(posSplit[2]);
-			node.scale = Double.parseDouble(parseFieldValuePair(br.readLine())[1]);
-			
-			// Read parent data for this node
-			while(br.readLine().trim().startsWith("Parent")) {
-				// Consume opening parenthesis
+			if(token.startsWith("TechTree") ||
+			   token.startsWith("﻿TechTree") ||
+			   token.startsWith("@Techtree")) {
+				// Consume opening bracket
 				br.readLine();
 				
-				// Read parent attributes
-				ParentInfo parent = new ParentInfo();
-				parent.id = parseFieldValuePair(br.readLine())[1];
-				parent.lineFrom = parseSide(parseFieldValuePair(br.readLine())[1]);
-				parent.lineTo = parseSide(parseFieldValuePair(br.readLine())[1]);
+				// Parse each RDNode definition
+				while(true) {
+					line = br.readLine();
+					if(line == null) {
+						break;
+					}
+					token = line.split("//")[0].trim();
+					
+					// Determine whether this definition creates a new Node or modifies an existing
+					Node node;
+					if(token.startsWith("RDNode")) {
+						node = new Node();
+					} else if(token.startsWith("@RDNode:HAS[#id:[")) {
+						// Parse name from token
+						int endIndex = token.indexOf(']');
+						String id;
+						if(endIndex < 0) {
+							id = token.substring(17);
+						} else {
+							id = token.substring(17, endIndex);
+						}
+						node = tree.getNodeByID(id);
+						if(node == null) {
+							System.out.printf("Invalid node id: %s\n", id);
+							continue;
+						}
+						tree.removeNode(node);
+					} else if(token.equals("}")) {
+						break;
+					} else {
+						System.out.printf("Unrecognized token: %s\n", token);
+						continue;
+					}
+					
+					System.out.println("Parsing node: " + node.id);
+					
+					// Consume opening bracket
+					br.readLine();
+					
+					// Parse each field for this Node
+					while(true) {
+						line = br.readLine();
+						if(line == null) {
+							break;
+						}
+						token = line.split("//")[0].trim();
+						
+						// Read a field/value pair for the node
+						String field, value;
+						if(token.contains("=")) {
+							field = token.split("=")[0].trim();
+							value = token.split("=")[1].trim();
+						} else if(token.equals("}")) {
+							break;
+						} else {
+							field = "";
+							value = token.split("=")[0].trim();
+						}
+						
+						// Set the field of the node accordionly
+						try {
+							switch(field) {
+							case "id":
+							case "@id":
+								node.id = value;
+								break;
+							case "title":
+							case "@title":
+								node.title = value;
+								break;
+							case "description":
+							case "@description":
+								node.description = value;
+								break;
+							case "cost":
+							case "@cost":
+								node.cost = Double.parseDouble(value);
+								break;
+							case "hideEmpty":
+							case "@hideEmpty":
+								node.hideEmpty = Boolean.parseBoolean(value);
+								break;
+							case "nodeName":
+							case "@nodeName":
+								node.nodeName = value;
+								break;
+							case "anyToUnlock":
+							case "@anyToUnlock":
+								node.anyToUnlock = Boolean.parseBoolean(value);
+								break;
+							case "icon":
+							case "@icon":
+								node.icon = value;
+								break;
+							case "pos":
+							case "@pos":
+								String[] split = value.split(",");
+								node.pos.x = Double.parseDouble(split[0]);
+								node.pos.y = Double.parseDouble(split[1]);
+								node.zPos = Double.parseDouble(split[2]);
+								break;
+							case "scale":
+							case "@scale":
+								node.scale = Double.parseDouble(value);
+								break;
+							case "":
+								switch(value) {
+								case "-Parent,* {}":
+									node.parentList.clear();
+									break;
+								case "Parent":
+									// Consume opening bracket
+									br.readLine();
+									
+									// Read parent fields
+									ParentInfo parent = new ParentInfo();
+									parent.id = br.readLine().split("//")[0].trim().substring(11);
+									parent.lineFrom = parseSide(br.readLine().split("//")[0].trim().substring(11));
+									parent.lineTo = parseSide(br.readLine().split("//")[0].trim().substring(9));
+									
+									node.parentList.add(parent);
+									
+									// Consume closing bracket
+									br.readLine();
+									break;
+								default:
+									System.out.printf("Unrecognized value pair: %s\n", value);
+								}
+								break;
+							default:
+								System.out.printf("Unrecognized field/value pair: %s/%s\n", field, value);
+							}
+						} catch(Exception e) {
+							e.printStackTrace();
+						}
+					}
+					
+					tree.addNode(node);
+				}
+			} else if(token.startsWith("Part") ||
+					  token.startsWith("@Part")) {
+				// Determine whether this definition creates a new Part or modifies an existing
+				PartInfo part;
+				if(token.startsWith("Part")) {
+					part = new PartInfo();
+				} else if(token.startsWith("@Part[")) {
+					// Parse name from token
+					int endIndex = token.indexOf(']');
+					String name;
+					if(endIndex < 0) {
+						name = token.substring(6);
+					} else {
+						name = token.substring(6, endIndex);
+					}
+					part = tree.getPart(name);
+					if(part == null) {
+						System.out.printf("Invalid part name: %s\n", name);
+						continue;
+					}
+				} else if(token.equals("}")) {
+					break;
+				} else {
+					System.out.printf("Unrecognized token: %s\n", token);
+					continue;
+				}
 				
-				node.parentList.add(parent);
-				
-				// Consume closing parenthesis
+				// Consume opening bracket
 				br.readLine();
+				
+				// Parse each field for this Part
+				while(true) {
+					line = br.readLine();
+					if(line == null) {
+						break;
+					}
+					token = line.split("//")[0].trim();
+					
+					// Read a field/value pair
+					String field, value;
+					if(token.contains("=")) {
+						field = token.split("=")[0].trim();
+						value = token.split("=")[1].trim();
+					} else if(token.equals("}")) {
+						break;
+					} else {
+						field = "";
+						value = token.split("=")[0].trim();
+					}
+					
+					// Set the field of the node accordionly
+					try {
+						switch(field) {
+						case "name":
+						case "@name":
+							part.name = value;
+							break;
+						case "techRequired":
+						case "@techRequired":
+							part.techRequired = value;
+							break;
+						case "entryCost":
+						case "@entryCost":
+							part.entryCost = Double.parseDouble(value);
+							break;
+						case "techHidden":
+						case "@techHidden":
+							part.techHidden = Boolean.parseBoolean(value);
+							break;
+						default:
+							System.out.printf("Unrecognized field/value pair: %s/%s\n", field, value);
+						}
+					} catch(Exception e) {
+						e.printStackTrace();
+					}
+				}
+				
+				tree.addPart(part);
 			}
-			
-			tree.addNode(node);
-			
-			// Closing parenthesis already consumed by parent loop
 		}
-		
 		return tree;
 	}
 	
@@ -100,19 +280,6 @@ public class TechTreeIO {
 			return read(tree, file);
 		} else {
 			return tree;
-		}
-	}
-	
-	// Takes a string with format "  field = value //Comment" and converts it to [field, value]
-	// Returns null if failed
-	private static String[] parseFieldValuePair(String line) {
-		try {
-			String noComment = line.split("//")[0].trim();
-			String[] fieldValue = noComment.split("=");
-			return new String[] {fieldValue[0].trim(), fieldValue[1].trim()};
-		} catch(ArrayIndexOutOfBoundsException e) {
-			//e.printStackTrace();
-			return null;
 		}
 	}
 	
