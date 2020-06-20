@@ -5,11 +5,40 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Node {
-	public String id, title, description, nodeName, icon;
-	public int cost;
-	public boolean hideEmpty, anyToUnlock;
+	// A unique identifier, used for part reqs and parent connections
+	public String id;
+	
+	// The in-game title for this node
+	public String title;
+	
+	// The in-game description for this node
+	public String description;
+	
+	// The science cost to purchase this node (not sure if double or int)
+	public double cost;
+	
+	// Whether this node will be displayed if it has no assigned parts
+	public boolean hideEmpty;
+	
+	// Unknown what this is used for
+	public String nodeName;
+	
+	// Whether this node requires all parents purchased to unlock, or just any
+	public boolean anyToUnlock;
+	
+	// Name of the image to be displayed for this node, either an in-game icon or external filepath
+	public String icon;
+	
+	// Location of this node in the tech tree (positive x is right, positive y is up)
 	public Point.Double pos;
-	public double scale, zPos;
+	
+	// Z-index of this node, used when nodes overlap (maybe?)
+	public double zPos;
+	
+	// Multiplier for node size (at 1.0, size is 64x64)
+	public double scale;
+	
+	// List of parent connections
 	public final List<ParentInfo> parentList;
 	
 	public Node() {
