@@ -342,7 +342,7 @@ public class TechTreeIO {
 	// Writes a ModuleManager definition that can be loaded by KSP to produce the given tech tree
 	public static void write(TechTree tree, TechTree base, OutputStream out) {
 		PrintWriter pw = new PrintWriter(new OutputStreamWriter(out));
-		pw.println("TechTree");
+		pw.println("@TechTree");
 		pw.println("{");
 		
 		// Write all removed nodes
