@@ -249,7 +249,7 @@ public class TechTreeIO {
 				}
 			} else if(token.equals("}")) {
 				break;		// Conclude this Part definition
-			} else if(token.equals("{")) {
+			} else if(token.endsWith("{")) {
 				// Sub-definition found, skip forward until back to PART def
 				int layer = 1;
 				while(layer > 0) {
