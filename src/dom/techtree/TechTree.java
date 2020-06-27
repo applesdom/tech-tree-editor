@@ -28,13 +28,17 @@ public class TechTree {
 	
 	public Node getNodeByID(String id) {
 		Node node = nodeMap.get(id);
-		if(node.id.equals(id)) {
+		if(node == null || node.id.equals(id)) {
 			return node;
 		} else {
 			removeNode(node);
 			addNode(node);
 			return null;
 		}
+	}
+	
+	public boolean hasNode(String id) {
+		return nodeMap.containsKey(id);
 	}
 	
 	public List<Node> getNodeList() {
@@ -59,7 +63,9 @@ public class TechTree {
 	
 	public PartInfo getPart(String name) {
 		PartInfo part = partMap.get(name);
-		if(part.name.equals(name)) {
+		if(part == null) {
+			return null;
+		} else if(part.name.equals(name)) {
 			return part;
 		} else {
 			removePart(part);
