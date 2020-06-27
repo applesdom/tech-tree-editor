@@ -124,7 +124,10 @@ public class TechTreeIO {
 				
 				parsePart(part, br);
 				
-				tree.addPart(part);
+				// Exclude parts with no in-game title (eg kerbalEVA)
+				if(part.title != null) {
+					tree.addPart(part);
+				}
 			}
 		}
 		return tree;
