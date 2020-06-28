@@ -81,7 +81,7 @@ public class TechTree {
 	public ArrayList<PartInfo> getPartList(Node node) {
 		ArrayList<PartInfo> partList = new ArrayList<PartInfo>();
 		for (PartInfo part : getPartList()) {
-			if (part.techRequired == node.id) {
+			if (part.techRequired.equals(node.id)) {
 				partList.add(part);
 			}
 		}
