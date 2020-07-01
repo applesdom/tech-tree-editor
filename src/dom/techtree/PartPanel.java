@@ -23,7 +23,13 @@ public class PartPanel extends JPanel {
 		this.setMinimumSize(new Dimension(390, 27));
 		this.setMaximumSize(new Dimension(390, 27));
 		
-		JLabel titleLabel = new JLabel(" " + part.title);
+		JLabel titleLabel = new JLabel();
+		String localTitle = LocalizationManager.translate(part.title);
+		if(localTitle == null) {
+			titleLabel.setText(" " + part.title);
+		} else {
+			titleLabel.setText(" " + localTitle);
+		}
 		titleLabel.setSize(235, 20);
 		titleLabel.setLocation(0, 3);
 		this.add(titleLabel);

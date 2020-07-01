@@ -9,6 +9,8 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -35,6 +37,7 @@ import javax.swing.border.EmptyBorder;
 
 public class Main {
 	private static TechTree tree, stockTree;
+	private static Node selectedNode;
 	
 	private static JFrame frame;
 	private static TechTreePanel treePanel;
@@ -48,6 +51,7 @@ public class Main {
 	public static void main(String[] args) {
 		initGUI();
 		
+		selectedNode = null;
 		try {
 			stockTree = TechTreeIO.readAll(new File("C:/Apps/Steam/steamapps/common/Kerbal Space Program/GameData/Squad"));
 			tree = TechTreeIO.readAll(new File("C:/Apps/Steam/steamapps/common/Kerbal Space Program/GameData/Squad"));
@@ -123,11 +127,13 @@ public class Main {
 			@Override
 			public void onSelect(Node node) {
 				updateNodeInfo(node);
+				selectedNode = node;
 			}
 			
 			@Override
 			public void onDeselect(Node node) {
 				updateNodeInfo(null);
+				selectedNode = null;
 			}
 		};
 		treePanel.setPreferredSize(new Dimension(600, 600));
@@ -155,6 +161,34 @@ public class Main {
 		nodeInfoPanel.add(iconBackLabel);
 		
 		titleField = new JTextField();
+		titleField.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				if(selectedNode != null && LocalizationManager.hasTranslation(selectedNode.title)) {
+					titleField.setText(selectedNode.title);
+					titleField.setBackground(costField.getBackground());
+				}
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				if(selectedNode != null && LocalizationManager.hasTranslation(selectedNode.title) && !e.getComponent().isFocusOwner()) {
+					titleField.setText(LocalizationManager.translate(selectedNode.title));
+					titleField.setBackground(new Color(255, 255, 160));
+				}
+			}
+		});
+		titleField.addFocusListener(new FocusListener() {
+			public void focusGained(FocusEvent e) {}
+
+			@Override
+			public void focusLost(FocusEvent e) {
+				if(selectedNode != null && LocalizationManager.hasTranslation(selectedNode.title)) {
+					titleField.setText(LocalizationManager.translate(selectedNode.title));
+					titleField.setBackground(new Color(255, 255, 160));
+				}
+			}
+		});
 		titleField.setSize(321, 20);
 		titleField.setLocation(69, 0);
 		nodeInfoPanel.add(titleField);
@@ -181,6 +215,34 @@ public class Main {
 		descriptionArea.setLineWrap(true);
 		descriptionArea.setBorder(titleField.getBorder());
 		descriptionArea.setFont(titleField.getFont());
+		descriptionArea.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				if(selectedNode != null &&LocalizationManager.hasTranslation(selectedNode.description)) {
+					descriptionArea.setText(selectedNode.description);
+					descriptionArea.setBackground(costField.getBackground());
+				}
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				if(selectedNode != null && LocalizationManager.hasTranslation(selectedNode.title) && !e.getComponent().isFocusOwner()) {
+					descriptionArea.setText(LocalizationManager.translate(selectedNode.description));
+					descriptionArea.setBackground(new Color(255, 255, 160));
+				}
+			}
+		});
+		descriptionArea.addFocusListener(new FocusListener() {
+			public void focusGained(FocusEvent e) {}
+
+			@Override
+			public void focusLost(FocusEvent e) {
+				if(selectedNode != null && LocalizationManager.hasTranslation(selectedNode.description)) {
+					descriptionArea.setText(LocalizationManager.translate(selectedNode.description));
+					descriptionArea.setBackground(new Color(255, 255, 160));
+				}
+			}
+		});
 		descriptionArea.setSize(390, 80);
 		descriptionArea.setLocation(0, 69);
 		nodeInfoPanel.add(descriptionArea);
@@ -268,7 +330,9 @@ public class Main {
 			iconLabel.setIcon(null);
 			
 			titleField.setText("");
+			titleField.setBackground(costField.getBackground());
 			descriptionArea.setText("");
+			descriptionArea.setBackground(costField.getBackground());
 			costField.setText("");
 			scaleField.setText("");
 			hideEmptyBox.setSelected(false);
@@ -301,8 +365,20 @@ public class Main {
 						icon.getScaledInstance(iconLabel.getWidth(), iconLabel.getHeight(), Image.SCALE_SMOOTH)));
 			}
 			
-			titleField.setText(node.title);
-			descriptionArea.setText(node.description);
+			if(LocalizationManager.hasTranslation(node.title)) {
+				titleField.setText(LocalizationManager.translate(node.title));
+				titleField.setBackground(new Color(255, 255, 160));
+			} else {
+				titleField.setText(node.title);
+				titleField.setBackground(costField.getBackground());
+			}
+			if(LocalizationManager.hasTranslation(node.title)) {
+				descriptionArea.setText(LocalizationManager.translate(node.description));
+				descriptionArea.setBackground(new Color(255, 255, 160));
+			} else {
+				descriptionArea.setText(node.description);
+				descriptionArea.setBackground(costField.getBackground());
+			}
 			costField.setText(Double.toString(node.cost));
 			scaleField.setText(Double.toString(node.scale));
 			hideEmptyBox.setSelected(node.hideEmpty);
