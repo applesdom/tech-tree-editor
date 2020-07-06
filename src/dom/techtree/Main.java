@@ -34,8 +34,15 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 public class Main {
+	private static final Color NORMAL_COLOR = new JTextField().getBackground(),
+			   				   INVALID_COLOR = new Color(255, 192, 192),
+			   				   LOC_COLOR = new Color(255, 255, 160);
+	
+	
 	private static TechTree tree, stockTree;
 	private static Node selectedNode;
 	
@@ -46,6 +53,7 @@ public class Main {
 	private static JTextField titleField, costField, scaleField, nodeNameField, iconField, idField;
 	private static JTextArea descriptionArea;
 	private static JCheckBox hideEmptyBox, anyToUnlockBox;
+	private static JMenuItem newMenuItem, importMenuItem, exportMenuItem;
 	private static JFileChooser importChooser, exportChooser;
 	
 	public static void main(String[] args) {
@@ -63,11 +71,169 @@ public class Main {
 	
 	@SuppressWarnings("serial")
 	private static void initGUI() {
+		// Set look-and-feel of GUI to get rid of ugly Java look
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
+		
+		// Set up GUI event listeners
+		ActionListener menuItemActionListener = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(e.getSource() == newMenuItem) {
+					tree.clear();
+					treePanel.setTechTree(tree);
+					updateNodeInfo(null);
+					frame.repaint();
+				} else if(e.getSource() == importMenuItem) {
+					if(importChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+			            try {
+							tree = TechTreeIO.readAll(importChooser.getSelectedFile());
+							treePanel.setTechTree(tree);
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+			        }
+				} else if(e.getSource() == exportMenuItem) {
+					if(exportChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+			            try {
+							TechTreeIO.write(tree, stockTree, exportChooser.getSelectedFile());
+						} catch (FileNotFoundException e1) {
+							e1.printStackTrace();
+						}
+			        }
+				}
+			}
+		};
+		
+		MouseAdapter locMouseAdapter = new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				if(e.getSource() == titleField) {
+					if(selectedNode != null && LocalizationManager.hasTranslation(selectedNode.title)) {
+						titleField.setText(selectedNode.title);
+						titleField.setBackground(NORMAL_COLOR);
+					}
+				} else if(e.getComponent() == descriptionArea) {
+					if(selectedNode != null && LocalizationManager.hasTranslation(selectedNode.description)) {
+						descriptionArea.setText(selectedNode.description);
+						descriptionArea.setBackground(NORMAL_COLOR);
+					}
+				}
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				if(e.getComponent() == titleField) {
+					if(selectedNode != null && LocalizationManager.hasTranslation(selectedNode.title) && !e.getComponent().isFocusOwner()) {
+						titleField.setBackground(LOC_COLOR);
+						titleField.setText(LocalizationManager.translate(selectedNode.title));
+					}
+				} else if(e.getComponent() == descriptionArea) {
+					if(selectedNode != null && LocalizationManager.hasTranslation(selectedNode.description) && !e.getComponent().isFocusOwner()) {
+						descriptionArea.setBackground(LOC_COLOR);
+						descriptionArea.setText(LocalizationManager.translate(selectedNode.description));
+					}
+				}
+			}
+		};
+		
+		FocusListener locFocusListener = new FocusListener() {
+			public void focusGained(FocusEvent e) {}
+
+			@Override
+			public void focusLost(FocusEvent e) {
+				if(e.getComponent() == titleField) {
+					if(selectedNode != null && LocalizationManager.hasTranslation(selectedNode.title)) {
+						titleField.setBackground(LOC_COLOR);
+						titleField.setText(LocalizationManager.translate(selectedNode.title));
+					}
+				} else if(e.getComponent() == descriptionArea) {
+					if(selectedNode != null && LocalizationManager.hasTranslation(selectedNode.description)) {
+						descriptionArea.setBackground(LOC_COLOR);
+						descriptionArea.setText(LocalizationManager.translate(selectedNode.description));
+					}
+				}
+			}
+		};
+		
+		DocumentListener documentListener = new DocumentListener() {
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				if(selectedNode == null) {
+					return;
+				} else if(e.getDocument() == titleField.getDocument()) {
+					if(titleField.getBackground().equals(NORMAL_COLOR)) {
+						selectedNode.title = titleField.getText();
+					}
+				} else if(e.getDocument() == iconField.getDocument()) {
+					selectedNode.icon = iconField.getText();
+					Image icon = IconManager.get(selectedNode.icon);
+					if(icon == null) {
+						icon = IconManager.BLANK_NODE;
+					}
+					iconLabel.setIcon(new ImageIcon(icon.getScaledInstance(iconLabel.getWidth(),
+																		   iconLabel.getHeight(),
+																		   Image.SCALE_SMOOTH)));
+				} else if(e.getDocument() == idField.getDocument()) {
+					Node conflictNode = tree.getNodeByID(idField.getText());
+					if(conflictNode == null || conflictNode == selectedNode) {
+						for(PartInfo part : tree.getPartList(selectedNode)) {
+							part.techRequired = idField.getText();
+						}
+						selectedNode.id = idField.getText();
+						idField.setBackground(NORMAL_COLOR);
+					} else {
+						idField.setBackground(INVALID_COLOR);
+					}
+				} else if(e.getDocument() == descriptionArea.getDocument()) {
+					if(descriptionArea.getBackground().equals(NORMAL_COLOR)) {
+						selectedNode.description = descriptionArea.getText();
+					}
+				} else if(e.getDocument() == costField.getDocument()) {
+					try {
+						costField.setBackground(NORMAL_COLOR);
+						selectedNode.cost = Double.parseDouble(costField.getText());
+					} catch(NumberFormatException e1) {
+						costField.setBackground(INVALID_COLOR);
+					}
+				} else if(e.getDocument() == scaleField.getDocument()) {
+					try {
+						scaleField.setBackground(NORMAL_COLOR);
+						selectedNode.scale = Double.parseDouble(scaleField.getText());
+					} catch(NumberFormatException e1) {
+						scaleField.setBackground(INVALID_COLOR);
+					}
+				} else if(e.getDocument() == nodeNameField.getDocument()) {
+					selectedNode.nodeName = nodeNameField.getText();
+				}
+			}
+			
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				changedUpdate(e);
+			}
+			
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				changedUpdate(e);
+			}
+		};
+		
+		ActionListener checkBoxListener = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(selectedNode == null) {
+					return;
+				} if(e.getSource() == hideEmptyBox) {
+					selectedNode.hideEmpty = hideEmptyBox.isSelected();
+				} else if(e.getSource() == anyToUnlockBox) {
+					selectedNode.anyToUnlock = anyToUnlockBox.isSelected();
+				}
+			}
+		};
 		
 		frame = new JFrame("Tech Tree Editor");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -80,60 +246,29 @@ public class Main {
 		JMenu fileMenu = new JMenu("File");
 		menuBar.add(fileMenu);
 		
-		JMenuItem newMenuItem = new JMenuItem("New");
-		newMenuItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				tree.clear();
-				treePanel.setTechTree(tree);
-				updateNodeInfo(null);
-				frame.repaint();
-			}
-		});
+		newMenuItem = new JMenuItem("New");
+		newMenuItem.addActionListener(menuItemActionListener);
 		fileMenu.add(newMenuItem);
 		
-		JMenuItem importMenuItem = new JMenuItem("Import");
-		importMenuItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-		        if(importChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
-		            try {
-						tree = TechTreeIO.readAll(importChooser.getSelectedFile());
-						treePanel.setTechTree(tree);
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					}
-		        }
-			}
-		});
+		importMenuItem = new JMenuItem("Import");
+		importMenuItem.addActionListener(menuItemActionListener);
 		fileMenu.add(importMenuItem);
 		
-		JMenuItem exportMenuItem = new JMenuItem("Export");
-		exportMenuItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-		        if(exportChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
-		            try {
-						TechTreeIO.write(tree, stockTree, exportChooser.getSelectedFile());
-					} catch (FileNotFoundException e1) {
-						e1.printStackTrace();
-					}
-		        }
-			}
-		});
+		exportMenuItem = new JMenuItem("Export");
+		exportMenuItem.addActionListener(menuItemActionListener);
 		fileMenu.add(exportMenuItem);
 		
 		treePanel = new TechTreePanel() {
 			@Override
 			public void onSelect(Node node) {
-				updateNodeInfo(node);
 				selectedNode = node;
+				updateNodeInfo(node);
 			}
 			
 			@Override
 			public void onDeselect(Node node) {
-				updateNodeInfo(null);
 				selectedNode = null;
+				updateNodeInfo(null);
 			}
 		};
 		treePanel.setPreferredSize(new Dimension(600, 600));
@@ -161,39 +296,15 @@ public class Main {
 		nodeInfoPanel.add(iconBackLabel);
 		
 		titleField = new JTextField();
-		titleField.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				if(selectedNode != null && LocalizationManager.hasTranslation(selectedNode.title)) {
-					titleField.setText(selectedNode.title);
-					titleField.setBackground(costField.getBackground());
-				}
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-				if(selectedNode != null && LocalizationManager.hasTranslation(selectedNode.title) && !e.getComponent().isFocusOwner()) {
-					titleField.setText(LocalizationManager.translate(selectedNode.title));
-					titleField.setBackground(new Color(255, 255, 160));
-				}
-			}
-		});
-		titleField.addFocusListener(new FocusListener() {
-			public void focusGained(FocusEvent e) {}
-
-			@Override
-			public void focusLost(FocusEvent e) {
-				if(selectedNode != null && LocalizationManager.hasTranslation(selectedNode.title)) {
-					titleField.setText(LocalizationManager.translate(selectedNode.title));
-					titleField.setBackground(new Color(255, 255, 160));
-				}
-			}
-		});
+		titleField.addMouseListener(locMouseAdapter);
+		titleField.addFocusListener(locFocusListener);
+		titleField.getDocument().addDocumentListener(documentListener);
 		titleField.setSize(321, 20);
 		titleField.setLocation(69, 0);
 		nodeInfoPanel.add(titleField);
 		
 		iconField = new JTextField();
+		iconField.getDocument().addDocumentListener(documentListener);
 		JComponent temp = new JPanel();
 		temp.setLayout(new BoxLayout(temp, BoxLayout.LINE_AXIS));
 		temp.add(new JLabel("icon = "));
@@ -203,6 +314,7 @@ public class Main {
 		nodeInfoPanel.add(temp);
 		
 		idField = new JTextField();
+		idField.getDocument().addDocumentListener(documentListener);
 		temp = new JPanel();
 		temp.setLayout(new BoxLayout(temp, BoxLayout.LINE_AXIS));
 		temp.add(new JLabel("id = "));
@@ -215,39 +327,15 @@ public class Main {
 		descriptionArea.setLineWrap(true);
 		descriptionArea.setBorder(titleField.getBorder());
 		descriptionArea.setFont(titleField.getFont());
-		descriptionArea.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				if(selectedNode != null &&LocalizationManager.hasTranslation(selectedNode.description)) {
-					descriptionArea.setText(selectedNode.description);
-					descriptionArea.setBackground(costField.getBackground());
-				}
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-				if(selectedNode != null && LocalizationManager.hasTranslation(selectedNode.title) && !e.getComponent().isFocusOwner()) {
-					descriptionArea.setText(LocalizationManager.translate(selectedNode.description));
-					descriptionArea.setBackground(new Color(255, 255, 160));
-				}
-			}
-		});
-		descriptionArea.addFocusListener(new FocusListener() {
-			public void focusGained(FocusEvent e) {}
-
-			@Override
-			public void focusLost(FocusEvent e) {
-				if(selectedNode != null && LocalizationManager.hasTranslation(selectedNode.description)) {
-					descriptionArea.setText(LocalizationManager.translate(selectedNode.description));
-					descriptionArea.setBackground(new Color(255, 255, 160));
-				}
-			}
-		});
+		descriptionArea.addMouseListener(locMouseAdapter);
+		descriptionArea.addFocusListener(locFocusListener);
+		descriptionArea.getDocument().addDocumentListener(documentListener);
 		descriptionArea.setSize(390, 80);
 		descriptionArea.setLocation(0, 69);
 		nodeInfoPanel.add(descriptionArea);
 		
 		costField = new JTextField();
+		costField.getDocument().addDocumentListener(documentListener);
 		temp = new JPanel();
 		temp.setLayout(new BoxLayout(temp, BoxLayout.LINE_AXIS));
 		temp.add(new JLabel("cost = "));
@@ -257,6 +345,7 @@ public class Main {
 		nodeInfoPanel.add(temp);
 		
 		scaleField = new JTextField();
+		scaleField.getDocument().addDocumentListener(documentListener);
 		temp = new JPanel();
 		temp.setLayout(new BoxLayout(temp, BoxLayout.LINE_AXIS));
 		temp.add(new JLabel("scale = "));
@@ -266,16 +355,19 @@ public class Main {
 		nodeInfoPanel.add(temp);
 		
 		hideEmptyBox = new JCheckBox("hideEmpty");
+		hideEmptyBox.addActionListener(checkBoxListener);
 		hideEmptyBox.setSize(110, 20);
 		hideEmptyBox.setLocation(280, 154);
 		nodeInfoPanel.add(hideEmptyBox);
 		
 		anyToUnlockBox = new JCheckBox("anyToUnlock");
+		anyToUnlockBox.addActionListener(checkBoxListener);
 		anyToUnlockBox.setSize(110, 20);
 		anyToUnlockBox.setLocation(280, 179);
 		nodeInfoPanel.add(anyToUnlockBox);
 		
 		nodeNameField = new JTextField();
+		nodeNameField.getDocument().addDocumentListener(documentListener);
 		temp = new JPanel();
 		temp.setLayout(new BoxLayout(temp, BoxLayout.LINE_AXIS));
 		temp.add(new JLabel("nodeName = "));
@@ -366,18 +458,18 @@ public class Main {
 			}
 			
 			if(LocalizationManager.hasTranslation(node.title)) {
+				titleField.setBackground(LOC_COLOR);
 				titleField.setText(LocalizationManager.translate(node.title));
-				titleField.setBackground(new Color(255, 255, 160));
 			} else {
 				titleField.setText(node.title);
-				titleField.setBackground(costField.getBackground());
+				titleField.setBackground(NORMAL_COLOR);
 			}
-			if(LocalizationManager.hasTranslation(node.title)) {
+			if(LocalizationManager.hasTranslation(node.description)) {
+				descriptionArea.setBackground(LOC_COLOR);
 				descriptionArea.setText(LocalizationManager.translate(node.description));
-				descriptionArea.setBackground(new Color(255, 255, 160));
 			} else {
 				descriptionArea.setText(node.description);
-				descriptionArea.setBackground(costField.getBackground());
+				descriptionArea.setBackground(NORMAL_COLOR);
 			}
 			costField.setText(Double.toString(node.cost));
 			scaleField.setText(Double.toString(node.scale));
