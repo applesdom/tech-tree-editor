@@ -1,4 +1,4 @@
-package dom.techtree;
+package dom.techtree.gui;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -12,6 +12,9 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
+import dom.techtree.LocalizationManager;
+import dom.techtree.data.PartInfo;
 
 @SuppressWarnings("serial")
 public class PartPanel extends JPanel {

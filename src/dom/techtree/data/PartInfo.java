@@ -1,4 +1,4 @@
-package dom.techtree;
+package dom.techtree.data;
 
 public class PartInfo {
 	public String name, title, techRequired;

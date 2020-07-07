@@ -1,4 +1,4 @@
-package dom.techtree;
+package dom.techtree.data;
 
 import java.awt.Point;
 import java.util.ArrayList;

@@ -37,6 +37,11 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import dom.techtree.data.Node;
+import dom.techtree.data.PartInfo;
+import dom.techtree.gui.PartPanel;
+import dom.techtree.gui.TechTreePanel;
+
 public class Main {
 	private static final Color NORMAL_COLOR = new JTextField().getBackground(),
 			   				   INVALID_COLOR = new Color(255, 192, 192),

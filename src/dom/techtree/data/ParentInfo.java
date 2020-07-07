@@ -1,4 +1,4 @@
-package dom.techtree;
+package dom.techtree.data;
 
 public class ParentInfo {
 	public static final int NONE = 0, TOP = 1, RIGHT = 2, BOTTOM = 3, LEFT = 4;

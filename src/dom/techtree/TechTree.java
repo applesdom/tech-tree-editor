@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import dom.techtree.data.Node;
+import dom.techtree.data.PartInfo;
+
 public class TechTree {
 	private final Map<String, Node> nodeMap = new HashMap<String, Node>();
 	private final Map<String, PartInfo> partMap = new HashMap<String, PartInfo>();

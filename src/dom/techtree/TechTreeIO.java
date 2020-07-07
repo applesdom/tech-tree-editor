@@ -12,6 +12,10 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 
+import dom.techtree.data.Node;
+import dom.techtree.data.ParentInfo;
+import dom.techtree.data.PartInfo;
+
 public class TechTreeIO {
 	public static TechTree readAll(File file) throws IOException {
 		return readAll(new TechTree(), file);

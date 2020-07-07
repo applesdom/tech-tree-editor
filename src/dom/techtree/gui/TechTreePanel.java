@@ -1,4 +1,4 @@
-package dom.techtree;
+package dom.techtree.gui;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -13,6 +13,11 @@ import java.awt.event.MouseWheelEvent;
 
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+
+import dom.techtree.IconManager;
+import dom.techtree.TechTree;
+import dom.techtree.data.Node;
+import dom.techtree.data.ParentInfo;
 
 @SuppressWarnings("serial")
 public class TechTreePanel extends JPanel {
