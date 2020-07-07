@@ -17,7 +17,7 @@ import javax.swing.SwingUtilities;
 import dom.techtree.IconManager;
 import dom.techtree.TechTree;
 import dom.techtree.data.Node;
-import dom.techtree.data.ParentInfo;
+import dom.techtree.data.Parent;
 
 @SuppressWarnings("serial")
 public class TechTreePanel extends JPanel {
@@ -162,7 +162,7 @@ public class TechTreePanel extends JPanel {
 				}
 				
 				// Draw an arrow from this node to each of its parents
-				for(ParentInfo parentInfo : node.parentList) {
+				for(Parent parentInfo : node.parentList) {
 					Node parent = tree.getNodeByID(parentInfo.id);
 					if(parent != null) {
 						Point.Double p1 = getSmallNodePos(parent, parentInfo.lineFrom);
@@ -203,18 +203,18 @@ public class TechTreePanel extends JPanel {
 	private Point.Double getSmallNodePos(Node node, int side) {
 		Point.Double p = new Point.Double(node.pos.x, -node.pos.y);
 		switch(side) {
-		case ParentInfo.TOP:
+		case Parent.TOP:
 			p.x += 0.5*NODE_SIZE*node.scale;
 			break;
-		case ParentInfo.RIGHT:
+		case Parent.RIGHT:
 			p.x += NODE_SIZE*node.scale;
 			p.y += 0.5*NODE_SIZE*node.scale;
 			break;
-		case ParentInfo.BOTTOM:
+		case Parent.BOTTOM:
 			p.x += 0.5*NODE_SIZE*node.scale;
 			p.y += NODE_SIZE*node.scale;
 			break;
-		case ParentInfo.LEFT:
+		case Parent.LEFT:
 			p.y += 0.5*NODE_SIZE*node.scale;
 			break;
 		}

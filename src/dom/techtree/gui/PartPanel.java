@@ -14,18 +14,18 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import dom.techtree.LocalizationManager;
-import dom.techtree.data.PartInfo;
+import dom.techtree.data.Part;
 
 @SuppressWarnings("serial")
 public class PartPanel extends JPanel {
 	private static final Color NORMAL_COLOR = new JTextField().getBackground(),
 							   INVALID_COLOR = new Color(255, 192, 192);
 	
-	private PartInfo part;
+	private Part part;
 	private JCheckBox hiddenBox;
 	private JTextField entryCostField;
 	
-	public PartPanel(PartInfo part) {
+	public PartPanel(Part part) {
 		this.part = part;
 		
 		this.setLayout(null);

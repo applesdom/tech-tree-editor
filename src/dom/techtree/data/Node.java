@@ -39,7 +39,7 @@ public class Node {
 	public double scale;
 	
 	// List of parent connections
-	public final List<ParentInfo> parentList;
+	public final List<Parent> parentList;
 	
 	public Node() {
 		id= "newNode";
@@ -53,6 +53,6 @@ public class Node {
 		pos = new Point.Double(0, 0);
 		zPos = 0;
 		scale = 0.6;
-		parentList = new ArrayList<ParentInfo>();
+		parentList = new ArrayList<Parent>();
 	}
 }

@@ -13,8 +13,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 
 import dom.techtree.data.Node;
-import dom.techtree.data.ParentInfo;
-import dom.techtree.data.PartInfo;
+import dom.techtree.data.Parent;
+import dom.techtree.data.Part;
 
 public class TechTreeIO {
 	public static TechTree readAll(File file) throws IOException {
@@ -106,9 +106,9 @@ public class TechTreeIO {
 				}
 			} else if(token.equals("PART") || token.startsWith("@PART[")) {
 				// Determine whether this definition creates a new Part or modifies an existing
-				PartInfo part;
+				Part part;
 				if(token.equals("PART")) {
-					part = new PartInfo();
+					part = new Part();
 				} else {
 					// Parse name from token
 					String name;
@@ -121,7 +121,7 @@ public class TechTreeIO {
 					part = tree.getPart(name);
 					if(part == null) {
 						// New part definition
-						part = new PartInfo();
+						part = new Part();
 						part.name = name;
 					}
 				}
@@ -162,7 +162,7 @@ public class TechTreeIO {
 				node.parentList.clear();
 				continue;
 			} else if(token.equals("Parent")) {
-				ParentInfo parent = parseParent(new ParentInfo(), br);
+				Parent parent = parseParent(new Parent(), br);
 				node.parentList.add(parent);
 				continue;
 			} else if(token.equals("}")) {
@@ -223,7 +223,7 @@ public class TechTreeIO {
 		
 		return node;
 	}
-	private static ParentInfo parseParent(ParentInfo parent, BufferedReader br) throws IOException {
+	private static Parent parseParent(Parent parent, BufferedReader br) throws IOException {
 		br.readLine();	// Consume opening bracket
 		
 		// Read parent fields
@@ -234,7 +234,7 @@ public class TechTreeIO {
 		br.readLine();	// Consume closing bracket
 		return parent;
 	}
-	private static PartInfo parsePart(PartInfo part, BufferedReader br) throws IOException {
+	private static Part parsePart(Part part, BufferedReader br) throws IOException {
 		br.readLine();	// Consume opening bracket
 		
 		while(true) {
@@ -310,29 +310,29 @@ public class TechTreeIO {
 	private static int parseSide(String side) {
 		switch(side) {
 		case "TOP":
-			return ParentInfo.TOP;
+			return Parent.TOP;
 		case "RIGHT":
-			return ParentInfo.RIGHT;
+			return Parent.RIGHT;
 		case "BOTTOM":
-			return ParentInfo.BOTTOM;
+			return Parent.BOTTOM;
 		case "LEFT":
-			return ParentInfo.LEFT;
+			return Parent.LEFT;
 		case "NONE":
 		default:
-			return ParentInfo.NONE;
+			return Parent.NONE;
 		}
 	}
 	
 	// Converts side enums into strings
 	private static String sideToString(int side) {
 		switch(side) {
-		case ParentInfo.TOP:
+		case Parent.TOP:
 			return "TOP";
-		case ParentInfo.RIGHT:
+		case Parent.RIGHT:
 			return "RIGHT";
-		case ParentInfo.BOTTOM:
+		case Parent.BOTTOM:
 			return "BOTTOM";
-		case ParentInfo.LEFT:
+		case Parent.LEFT:
 			return "LEFT";
 		default:
 			return "NONE";
@@ -372,7 +372,7 @@ public class TechTreeIO {
 				pw.printf("\t\ticon = %s\n", node.icon);
 				pw.printf("\t\tpos = %f,%f,%f\n", node.pos.x, node.pos.y, node.zPos);
 				pw.printf("\t\tscale = %f\n", node.scale);
-				for(ParentInfo parent : node.parentList) {
+				for(Parent parent : node.parentList) {
 					pw.println("\t\tParent");
 					pw.println("\t\t{");
 					pw.printf("\t\t\tparentID = %s\n", parent.id);
@@ -398,9 +398,9 @@ public class TechTreeIO {
 				// Check for any difference in parent lists
 				boolean parentDifference = false;
 				if(node.parentList.size() == baseNode.parentList.size()) {
-					for(ParentInfo parent : node.parentList) {
+					for(Parent parent : node.parentList) {
 						boolean match = false;
-						for(ParentInfo baseParent : baseNode.parentList) {
+						for(Parent baseParent : baseNode.parentList) {
 							if(parent.id.equals(baseParent.id)) {
 								match = true;
 								if(parent.lineTo != baseParent.lineTo || parent.lineFrom != baseParent.lineFrom) {
@@ -451,7 +451,7 @@ public class TechTreeIO {
 					
 					if(parentDifference) {
 						pw.println("\t\t-Parent,* {}");
-						for(ParentInfo parent : node.parentList) {
+						for(Parent parent : node.parentList) {
 							pw.println("\t\tParent");
 							pw.println("\t\t{");
 							pw.printf("\t\t\tparentfID = %s\n", parent.id);
@@ -467,8 +467,8 @@ public class TechTreeIO {
 		
 		pw.println("}");
 		
-		for(PartInfo part : tree.getPartList()) {
-			PartInfo basePart = base.getPart(part.name);
+		for(Part part : tree.getPartList()) {
+			Part basePart = base.getPart(part.name);
 			
 			boolean fieldDifference = basePart == null
 					|| !part.techRequired.equals(basePart.techRequired)

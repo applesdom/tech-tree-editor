@@ -38,7 +38,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import dom.techtree.data.Node;
-import dom.techtree.data.PartInfo;
+import dom.techtree.data.Part;
 import dom.techtree.gui.PartPanel;
 import dom.techtree.gui.TechTreePanel;
 
@@ -185,7 +185,7 @@ public class Main {
 				} else if(e.getDocument() == idField.getDocument()) {
 					Node conflictNode = tree.getNodeByID(idField.getText());
 					if(conflictNode == null || conflictNode == selectedNode) {
-						for(PartInfo part : tree.getPartList(selectedNode)) {
+						for(Part part : tree.getPartList(selectedNode)) {
 							part.techRequired = idField.getText();
 						}
 						selectedNode.id = idField.getText();
@@ -450,7 +450,7 @@ public class Main {
 			
 			if(tree != null) {
 				partListPanel.removeAll();
-				for(PartInfo part : tree.getPartList()) {
+				for(Part part : tree.getPartList()) {
 					PartPanel partPanel = new PartPanel(part);
 					partListPanel.add(partPanel);
 				}
@@ -496,7 +496,7 @@ public class Main {
 			
 			if(tree != null) {
 				partListPanel.removeAll();
-				for(PartInfo part : tree.getPartList(node)) {
+				for(Part part : tree.getPartList(node)) {
 					PartPanel partPanel = new PartPanel(part);
 					partListPanel.add(partPanel);
 				}

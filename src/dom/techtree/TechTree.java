@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Map;
 
 import dom.techtree.data.Node;
-import dom.techtree.data.PartInfo;
+import dom.techtree.data.Part;
 
 public class TechTree {
 	private final Map<String, Node> nodeMap = new HashMap<String, Node>();
-	private final Map<String, PartInfo> partMap = new HashMap<String, PartInfo>();
+	private final Map<String, Part> partMap = new HashMap<String, Part>();
 	
 	public void addNode(String id) {
 		nodeMap.put(id, new Node());
@@ -49,10 +49,10 @@ public class TechTree {
 	}
 	
 	public void addPart(String name) {
-		partMap.put(name, new PartInfo());
+		partMap.put(name, new Part());
 	}
 	
-	public void addPart(PartInfo part) {
+	public void addPart(Part part) {
 		partMap.put(part.name, part);
 	}
 	
@@ -60,12 +60,12 @@ public class TechTree {
 		partMap.remove(name);
 	}
 	
-	public void removePart(PartInfo part) {
+	public void removePart(Part part) {
 		partMap.remove(part.name);
 	}
 	
-	public PartInfo getPart(String name) {
-		PartInfo part = partMap.get(name);
+	public Part getPart(String name) {
+		Part part = partMap.get(name);
 		if(part == null) {
 			return null;
 		} else if(part.name.equals(name)) {
@@ -77,13 +77,13 @@ public class TechTree {
 		}
 	}
 	
-	public Collection<PartInfo> getPartList() {
+	public Collection<Part> getPartList() {
 		return partMap.values();
 	}
 	
-	public ArrayList<PartInfo> getPartList(Node node) {
-		ArrayList<PartInfo> partList = new ArrayList<PartInfo>();
-		for (PartInfo part : getPartList()) {
+	public ArrayList<Part> getPartList(Node node) {
+		ArrayList<Part> partList = new ArrayList<Part>();
+		for (Part part : getPartList()) {
 			if (part.techRequired.equals(node.id)) {
 				partList.add(part);
 			}
