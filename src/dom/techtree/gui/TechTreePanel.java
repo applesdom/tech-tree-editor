@@ -222,8 +222,25 @@ public class TechTreePanel extends JPanel {
 	}
 	
 	private void drawArrow(Point.Double p1, Point.Double p2, Graphics g) {
-		Graphics2D g2d = (Graphics2D) g;
-		g2d.drawLine((int) p1.x, (int) p1.y, (int) p2.x, (int) p2.y);
+		double d = 14, h = 6;
+		double dx = p2.x - p1.x, dy = p2.y - p1.y;
+	    double D = Math.sqrt(dx*dx + dy*dy);
+	    double xm = D - d, xn = xm, ym = h, yn = -h, x;
+	    double sin = dy / D, cos = dx / D;
+
+	    x = xm*cos - ym*sin + p1.x;
+	    ym = xm*sin + ym*cos + p1.y;
+	    xm = x;
+
+	    x = xn*cos - yn*sin + p1.x;
+	    yn = xn*sin + yn*cos + p1.y;
+	    xn = x;
+
+	    int[] xpoints = {(int) p2.x, (int) xm, (int) xn};
+	    int[] ypoints = {(int) p2.y, (int) ym, (int) yn};
+
+	    g.drawLine((int) p1.x, (int) p1.y, (int) p2.x, (int) p2.y);
+	    g.fillPolygon(xpoints, ypoints, 3);
 	}
 	
 	// Empty functions for overriding
