@@ -56,12 +56,14 @@ public class TechTreeIO {
 			if(line.equals("//")) continue;
 			String token = line.split("//")[0].trim();
 			
-			// Remove leading '﻿' from token if present (does not affect parsing)
-			if(token.startsWith("﻿") && token.length() > 3) {
-				token = token.substring(3);
+			// Remove any leading garbage characters from token
+			// TODO: Figure out what the heck is causing this
+			while((token.charAt(0) > 255) && token.length() > 2) {
+				token = token.substring(1);
 			}
 			
 			if(token.equals("TechTree") || token.equals("@TechTree")) {
+				System.out.println("lol");
 				br.readLine();	// Consume opening bracket
 				
 				// Check each line for a RDNode definition
