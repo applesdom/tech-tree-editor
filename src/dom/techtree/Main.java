@@ -67,8 +67,9 @@ public class Main {
 		
 		selectedNode = null;
 		try {
-			stockTree = TechTreeIO.readAll(new File("C:/Apps/Steam/steamapps/common/Kerbal Space Program/GameData/Squad"));
-			tree = TechTreeIO.readAll(new File("C:/Apps/Steam/steamapps/common/Kerbal Space Program/GameData/Squad"));
+			//stockTree = TechTreeIO.readAll(new File("C:/Apps/Steam/steamapps/common/Kerbal Space Program/GameData/Squad"));
+			//tree = TechTreeIO.readAll(new File("C:/Apps/Steam/steamapps/common/Kerbal Space Program/GameData/Squad"));
+			tree = TechTreeIO.readAll(new File("/home/dom/.local/share/Steam/steamapps/common/Kerbal Space Program/GameData/Squad/"));
 			treePanel.setTechTree(tree);
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -503,8 +504,8 @@ public class Main {
 				}
 			}
 		}
-		//nodeInfoPanel.repaint();
-		nodeInfoPanel.revalidate();
-		partListPanel.revalidate();
+		//nodeInfoPanel.revalidate();
+		nodeInfoPanel.repaint();
+		partListPanel.repaint();
 	}
 }
