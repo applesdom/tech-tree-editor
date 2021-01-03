@@ -15,9 +15,9 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import dom.techtree.IconManager;
-import dom.techtree.TechTree;
 import dom.techtree.data.Node;
 import dom.techtree.data.Parent;
+import dom.techtree.data.TechTree;
 
 @SuppressWarnings("serial")
 public class TechTreePanel extends JPanel {

@@ -1,13 +1,10 @@
-package dom.techtree;
+package dom.techtree.data;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import dom.techtree.data.Node;
-import dom.techtree.data.Part;
 
 public class TechTree {
 	private final Map<String, Node> nodeMap = new HashMap<String, Node>();

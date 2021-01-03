@@ -39,6 +39,7 @@ import javax.swing.event.DocumentListener;
 
 import dom.techtree.data.Node;
 import dom.techtree.data.Part;
+import dom.techtree.data.TechTree;
 import dom.techtree.gui.PartPanel;
 import dom.techtree.gui.TechTreePanel;
 

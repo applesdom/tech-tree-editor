@@ -15,6 +15,7 @@ import java.io.PrintWriter;
 import dom.techtree.data.Node;
 import dom.techtree.data.Parent;
 import dom.techtree.data.Part;
+import dom.techtree.data.TechTree;
 
 public class TechTreeIO {
 	public static TechTree readAll(File file) throws IOException {
