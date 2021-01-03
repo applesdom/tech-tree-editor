@@ -196,6 +196,12 @@ public class TechTreePanel extends JPanel {
 						(int) (-hoverNode.pos.y + 0.5*NODE_SIZE*hoverNode.scale - 0.5*SMALL_NODE_SIZE),
 						(int) SMALL_NODE_SIZE, (int) SMALL_NODE_SIZE);
 			}
+			
+			// Draw part count in upper left corner of each node
+			for(Node node : tree.getNodeList()) {
+				g2d.setColor(new Color(255, 255, 255));
+				g2d.drawString(String.format("%d", tree.getPartList(node).size()), (int) node.pos.x, (int) -node.pos.y - 2);
+			}
 		}
 	}
 	
