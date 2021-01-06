@@ -7,6 +7,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -18,6 +19,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
@@ -33,6 +35,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -302,15 +305,20 @@ public class Main {
 		iconBackLabel.setLocation(0, 0);
 		nodeInfoPanel.add(iconBackLabel);
 		
+		// Shared border for all text fields
+		Border textFieldBorder = BorderFactory.createEmptyBorder(2, 4, 3, 4);
+		
 		titleField = new JTextField();
 		titleField.addMouseListener(locMouseAdapter);
 		titleField.addFocusListener(locFocusListener);
 		titleField.getDocument().addDocumentListener(documentListener);
 		titleField.setSize(321, 20);
 		titleField.setLocation(69, 0);
+		titleField.setBorder(textFieldBorder);
 		nodeInfoPanel.add(titleField);
 		
 		iconField = new JTextField();
+		iconField.setBorder(textFieldBorder);
 		iconField.getDocument().addDocumentListener(documentListener);
 		JComponent temp = new JPanel();
 		temp.setLayout(new BoxLayout(temp, BoxLayout.LINE_AXIS));
@@ -321,6 +329,7 @@ public class Main {
 		nodeInfoPanel.add(temp);
 		
 		idField = new JTextField();
+		idField.setBorder(textFieldBorder);
 		idField.getDocument().addDocumentListener(documentListener);
 		temp = new JPanel();
 		temp.setLayout(new BoxLayout(temp, BoxLayout.LINE_AXIS));
@@ -332,7 +341,7 @@ public class Main {
 		
 		descriptionArea = new JTextArea();
 		descriptionArea.setLineWrap(true);
-		descriptionArea.setBorder(titleField.getBorder());
+		descriptionArea.setBorder(textFieldBorder);
 		descriptionArea.setFont(titleField.getFont());
 		descriptionArea.addMouseListener(locMouseAdapter);
 		descriptionArea.addFocusListener(locFocusListener);
@@ -342,6 +351,7 @@ public class Main {
 		nodeInfoPanel.add(descriptionArea);
 		
 		costField = new JTextField();
+		costField.setBorder(textFieldBorder);
 		costField.getDocument().addDocumentListener(documentListener);
 		temp = new JPanel();
 		temp.setLayout(new BoxLayout(temp, BoxLayout.LINE_AXIS));
@@ -352,6 +362,7 @@ public class Main {
 		nodeInfoPanel.add(temp);
 		
 		scaleField = new JTextField();
+		scaleField.setBorder(textFieldBorder);
 		scaleField.getDocument().addDocumentListener(documentListener);
 		temp = new JPanel();
 		temp.setLayout(new BoxLayout(temp, BoxLayout.LINE_AXIS));
@@ -374,6 +385,7 @@ public class Main {
 		nodeInfoPanel.add(anyToUnlockBox);
 		
 		nodeNameField = new JTextField();
+		nodeNameField.setBorder(textFieldBorder);
 		nodeNameField.getDocument().addDocumentListener(documentListener);
 		temp = new JPanel();
 		temp.setLayout(new BoxLayout(temp, BoxLayout.LINE_AXIS));

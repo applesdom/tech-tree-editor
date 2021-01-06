@@ -53,6 +53,7 @@ public class PartPanel extends JPanel {
 		
 		entryCostField = new JTextField();
 		entryCostField.setText(Double.toString(part.entryCost));
+		entryCostField.setBorder(BorderFactory.createEmptyBorder(2, 4, 3, 4));
 		entryCostField.setSize(60, 20);
 		entryCostField.setLocation(293, 3);
 		this.add(entryCostField);
