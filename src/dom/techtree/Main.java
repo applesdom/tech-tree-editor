@@ -51,6 +51,8 @@ public class Main {
 			   				   INVALID_COLOR = new Color(255, 192, 192),
 			   				   LOC_COLOR = new Color(255, 255, 160);
 	
+	// TODO allow this to be set on first startup and saved persistently
+	private static final File DEFAULT_KSP_DIR = new File("/home/dom/.local/share/Steam/steamapps/common/Kerbal Space Program/");
 	
 	private static TechTree tree, stockTree;
 	private static Node selectedNode;
@@ -70,6 +72,8 @@ public class Main {
 		
 		selectedNode = null;
 		try {
+			LocalizationManager.readLocalizationFile(new File(DEFAULT_KSP_DIR, "GameData/Squad/Localization/dictionary.cfg"));
+			
 			//stockTree = TechTreeIO.readAll(new File("C:/Apps/Steam/steamapps/common/Kerbal Space Program/GameData/Squad"));
 			//tree = TechTreeIO.readAll(new File("C:/Apps/Steam/steamapps/common/Kerbal Space Program/GameData/Squad"));
 			tree = TechTreeIO.readAll(new File("/home/dom/.local/share/Steam/steamapps/common/Kerbal Space Program/GameData/Squad/"));

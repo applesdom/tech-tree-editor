@@ -1,39 +1,38 @@
 package dom.techtree;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
 public class LocalizationManager {
-	public static final String LOCALIZATION_FILE_NAME = "/dictionary.cfg";
-	
 	private static Map<String, String> translationMap = new HashMap<String, String>();
 	
 	public static String translate(String key) {
-		if(translationMap.isEmpty()) {
-			readLocalizationFile();
-		}
 		return translationMap.get(key);
 	}
 	
 	public static boolean hasTranslation(String key) {
-		if(translationMap.isEmpty()) {
-			readLocalizationFile();
-		}
 		return translationMap.containsKey(key);
 	}
 	
-	private static void readLocalizationFile() {
+	public static void readLocalizationFile(File file) {
 		try {
-			BufferedReader br = new BufferedReader(new InputStreamReader(
-					LocalizationManager.class.getResourceAsStream(LOCALIZATION_FILE_NAME)));
+			BufferedReader br = new BufferedReader(new FileReader(file));
 			
 			String line;
 			while((line = br.readLine()) != null) {
-				String[] lineSplit = line.split(" = ");
-				translationMap.put(lineSplit[0], lineSplit[1]);
+				line = line.strip();
+				int splitIndex = line.indexOf(" = ");
+				if(splitIndex > 0) {
+					translationMap.put(line.substring(0, splitIndex), line.substring(splitIndex + 3));
+				} else {
+					// Ignore malformed lines
+				}
+				
 			}
 		} catch(IOException e) {
 			e.printStackTrace();
