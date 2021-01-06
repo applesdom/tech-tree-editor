@@ -58,12 +58,11 @@ public class TechTreeIO {
 			
 			// Remove any leading garbage characters from token
 			// TODO: Figure out what the heck is causing this
-			while((token.charAt(0) > 255) && token.length() > 2) {
+			while(token.length() > 2 && (token.charAt(0) > 255)) {
 				token = token.substring(1);
 			}
 			
 			if(token.equals("TechTree") || token.equals("@TechTree")) {
-				System.out.println("lol");
 				br.readLine();	// Consume opening bracket
 				
 				// Check each line for a RDNode definition
