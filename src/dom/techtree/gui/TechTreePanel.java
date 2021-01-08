@@ -15,6 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import dom.techtree.IconManager;
+import dom.techtree.LocalizationManager;
 import dom.techtree.data.Node;
 import dom.techtree.data.Parent;
 import dom.techtree.data.TechTree;
@@ -29,45 +30,93 @@ public class TechTreePanel extends JPanel {
 	private double scale = 1.0;
 	private TechTree tree;
 	private Node selectedNode = null, hoverNode= null;
-	//private int selectedSide = -1;
+	private int selectedSide = Parent.NONE;
+	
+	private Point mousePos = null;
 	
 	public TechTreePanel() {
 		MouseAdapter mouseAdapter = new MouseAdapter() {
-			private Point mousePos = null;
-			
 			@Override
 			public void mousePressed(MouseEvent e) {
 				if(SwingUtilities.isLeftMouseButton(e)) {
-					mousePos = e.getPoint();
-					Point.Double localPos = new Point.Double(viewPos.x + e.getX()/scale, viewPos.y + e.getY()/scale);
-					if(selectedNode != null) {
-						onDeselect(selectedNode);
-						selectedNode = null;
-					}
-					for(Node node : tree.getNodeList()) {
-						if(localPos.x > node.pos.x && localPos.x < node.pos.x + NODE_SIZE*node.scale &&
-						   localPos.y > -node.pos.y && localPos.y < -node.pos.y + NODE_SIZE*node.scale) {
+					if(e.getClickCount() == 1) {
+						mousePos = e.getPoint();
+						Point.Double localPos = new Point.Double(viewPos.x + e.getX()/scale, viewPos.y + e.getY()/scale);
+						if(selectedNode != null) {
+							onDeselect(selectedNode);
+							selectedNode = null;
+						}
+						Node node = getNodeAtPoint(localPos);
+						if(node != null) {
 							selectedNode = node;
 							onSelect(node);
-							break;
+							int side = getSideAtPoint(node, localPos);
+							if(side != Parent.NONE) {
+								selectedSide = side;
+							}
+						}
+						repaint();
+					} else if(e.getClickCount() == 2) {
+						Point.Double localPos = new Point.Double(viewPos.x + e.getX()/scale, viewPos.y + e.getY()/scale);
+						for(Node node : tree.getNodeList()) {
+							for(Parent parentInfo : node.parentList) {
+								Node parent = tree.getNodeByID(parentInfo.id);
+								Point.Double p1 = getSmallNodePos(parent, parentInfo.lineFrom);
+								Point.Double p2 = getSmallNodePos(node, parentInfo.lineTo);
+								Point.Double max = new Point.Double(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y));
+								Point.Double min = new Point.Double(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y));
+								if(localPos.x < max.x + 4 && localPos.x > min.x - 4 && localPos.y < max.y + 4&& localPos.y > min.y - 4) {
+									double dis = Math.abs((p2.x - p1.x) * (p1.y - localPos.y) - (p1.x - localPos.x) * (p2.y - p1.y)) / Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)); 
+									if(dis < 8) {
+										node.parentList.remove(parentInfo);
+										repaint();
+										return;
+									}
+								}
+							}
 						}
 					}
-					repaint();
 				}
 			}
+			
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				if(SwingUtilities.isLeftMouseButton(e)) {
+					Point.Double localPos = new Point.Double(viewPos.x + e.getX()/scale, viewPos.y + e.getY()/scale);
+					if(selectedSide != Parent.NONE) {
+						Node node = getNodeAtPoint(localPos);
+						if(node != null) {
+							int side = getSideAtPoint(node, localPos);
+							if(side == Parent.NONE) {
+								double relX = node.pos.x - selectedNode.pos.x,
+									   relY = node.pos.y - selectedNode.pos.y;
+								if(Math.abs(relX) > Math.abs(relY)) {
+									if(relX < 0) {
+										side = Parent.RIGHT;
+									} else {
+										side = Parent.LEFT;
+									}
+								} else {
+									if(relY < 0) {
+										side = Parent.TOP;
+									} else {
+										side = Parent.BOTTOM;
+									}
+								}
+							}
+							node.parentList.add(new Parent(selectedNode.id, side, selectedSide));
+							repaint();
+						}
+					}
+					selectedSide = Parent.NONE;
+				}
+			}	
 			
 			@Override 
 			public void mouseMoved(MouseEvent e) {
 				if(tree != null) {
 					Point.Double localPos = new Point.Double(viewPos.x + e.getX()/scale, viewPos.y + e.getY()/scale);
-					Node newHoverNode = null;
-					for(Node node : tree.getNodeList()) {
-						if(localPos.x > node.pos.x - 4 && localPos.x < node.pos.x + NODE_SIZE*node.scale + 4 &&
-						   localPos.y > -node.pos.y - 4&& localPos.y < -node.pos.y + NODE_SIZE*node.scale + 4) {
-							newHoverNode = node;
-							break;
-						}
-					}
+					Node newHoverNode = getNodeAtPoint(localPos);
 					if(newHoverNode != hoverNode) {
 						hoverNode = newHoverNode;
 						repaint();
@@ -84,7 +133,7 @@ public class TechTreePanel extends JPanel {
 					if(selectedNode == null) {
 						viewPos.x -= deltaX / scale;
 						viewPos.y -= deltaY / scale;
-					} else {
+					} else if(selectedSide == Parent.NONE){
 						selectedNode.pos.x += deltaX / scale;
 						selectedNode.pos.y -= deltaY / scale;
 					}
@@ -172,6 +221,13 @@ public class TechTreePanel extends JPanel {
 				}
 			}
 			
+			// Draw arrow-in-progress
+			if(selectedNode != null && selectedSide > 0 && mousePos != null) {
+				Point.Double p1 = getSmallNodePos(selectedNode, selectedSide);
+				Point.Double localMousePos = new Point.Double(viewPos.x + mousePos.getX()/scale, viewPos.y + mousePos.getY()/scale);
+				drawArrow(p1, localMousePos, g2d);
+			}
+			
 			// Draw green border around selected node
 			if(selectedNode != null) {
 				g2d.setColor(new Color(128, 192, 72));
@@ -200,10 +256,34 @@ public class TechTreePanel extends JPanel {
 			// Draw part count in upper left corner of each node
 			for(Node node : tree.getNodeList()) {
 				g2d.setColor(new Color(255, 255, 255));
-				g2d.drawString(String.format("%d", tree.getPartList(node).size()), (int) node.pos.x, (int) -node.pos.y - 2);
+				g2d.drawString(String.format("%s (%d)", LocalizationManager.translate(node.title), tree.getPartList(node).size()), (int) node.pos.x, (int) -node.pos.y - 2);
 			}
 		}
 	}
+	
+	// Returns the node at a given point, or null
+	private Node getNodeAtPoint(Point.Double p) {
+		for(Node node : tree.getNodeList()) {
+			if(p.x > node.pos.x - 4 && p.x < node.pos.x + NODE_SIZE*node.scale + 4 &&
+			   p.y > -node.pos.y - 4 && p.y < -node.pos.y + NODE_SIZE*node.scale + 4) {
+				return node;
+			}
+		}
+		return null;
+	}
+	
+	// Returns which side of the given node is located at the given point, or NONE if none are close
+	private int getSideAtPoint(Node node, Point.Double p) {
+		for(int i = 1; i <= 4; i ++) {
+			Point.Double smallNodePos = getSmallNodePos(node, i);
+			if(p.x > smallNodePos.x - 2 && p.x < smallNodePos.x + SMALL_NODE_SIZE*node.scale + 2 &&
+			   p.y > smallNodePos.y - 2 && p.y < smallNodePos.y + SMALL_NODE_SIZE*node.scale + 2) {
+				return i;
+			}
+		}
+		return Parent.NONE;
+	}
+	
 	
 	// Returns the location of the small node on the given side of a large node
 	private Point.Double getSmallNodePos(Node node, int side) {
