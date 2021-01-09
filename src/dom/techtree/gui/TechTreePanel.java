@@ -22,12 +22,32 @@ import dom.techtree.data.TechTree;
 
 @SuppressWarnings("serial")
 public class TechTreePanel extends JPanel {
-	private static final int GRID_SIZE = 40;
-	private static final double NODE_SIZE = 64.0, SMALL_NODE_SIZE = 8.0;
-	private static final float SELECTION_HALO_WIDTH = 3.0f;
+	// Constant values to control the look and feel of this component
+	private static final double MIN_SCALE = 0.25,
+								MAX_SCALE = 4.0,
+								SCALE_RATE = 1.0905,
+								GRID_SIZE = 40.0,
+								NODE_SIZE = 64.0,
+								CONNECTION_HANDLE_SIZE = 8.0,
+								FRINGE_SIZE = 6.0;
+	private static final Color BACKGROUND_COLOR = new Color(32, 16, 48),
+							   GRID_MINOR_COLOR = new Color(48, 64, 32),
+							   GRID_MAJOR_COLOR = new Color(64, 64, 64),
+							   SELECTED_NODE_COLOR = new Color(128, 192, 72),
+							   CONNECTION_HANDLE_COLOR = new Color(32, 128, 240),
+							   CONNECTION_COLOR = new Color(192, 192, 192),
+							   TEXT_COLOR = new Color(255, 255, 255);
+	private static final float GRID_MINOR_STROKE_SIZE = 1.0f,
+							   GRID_MAJOR_STROKE_SIZE = 3.0f,
+							   SELECTED_NODE_STROKE_SIZE = 3.0f,
+							   CONNECTION_STROKE_SIZE = 1.0f;
 	
-	private Point.Double viewPos = new Point.Double(-1560.0, -1120.0);
+	// Values to store the position and zoom factor of the window
+	// In window space (local): x values increase to the right, y values increase to the bottom, origin is at top left of window
+	// In tech tree space (global): x values increase to the right, y values increase to the top, top left of window is located at viewPos
+	private Point.Double viewPos = new Point.Double(-1560.0, 1120.0);
 	private double scale = 1.0;
+	
 	private TechTree tree;
 	private Node selectedNode = null, hoverNode= null;
 	private int selectedSide = Parent.NONE;
@@ -35,58 +55,70 @@ public class TechTreePanel extends JPanel {
 	private Point mousePos = null;
 	
 	public TechTreePanel() {
+		// Set up this component's own mouse listener
 		MouseAdapter mouseAdapter = new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				if(SwingUtilities.isLeftMouseButton(e)) {
 					if(e.getClickCount() == 1) {
-						mousePos = e.getPoint();
-						Point.Double localPos = new Point.Double(viewPos.x + e.getX()/scale, viewPos.y + e.getY()/scale);
+						// Deselect the current node
 						if(selectedNode != null) {
 							onDeselect(selectedNode);
 							selectedNode = null;
 						}
-						Node node = getNodeAtPoint(localPos);
+						
+						// Check if a new node was selected
+						Point.Double globalPos = convertToGlobalSpace(e.getPoint());
+						Node node = getNodeAtPoint(globalPos);
 						if(node != null) {
 							selectedNode = node;
 							onSelect(node);
-							int side = getSideAtPoint(node, localPos);
-							if(side != Parent.NONE) {
-								selectedSide = side;
-							}
+							
+							// Check if a connection handle was clicked
+							selectedSide = getSideAtPoint(node, globalPos);
 						}
-						repaint();
 					} else if(e.getClickCount() == 2) {
-						Point.Double localPos = new Point.Double(viewPos.x + e.getX()/scale, viewPos.y + e.getY()/scale);
+						// Check if a node connection was double-clicked, and delete it if so
+						Point.Double globalPos = convertToGlobalSpace(e.getPoint());
+						nodeLoop:
 						for(Node node : tree.getNodeList()) {
 							for(Parent parentInfo : node.parentList) {
 								Node parent = tree.getNodeByID(parentInfo.id);
-								Point.Double p1 = getSmallNodePos(parent, parentInfo.lineFrom);
-								Point.Double p2 = getSmallNodePos(node, parentInfo.lineTo);
+								Point.Double p1 = getConnectionHandlePos(parent, parentInfo.lineFrom);
+								Point.Double p2 = getConnectionHandlePos(node, parentInfo.lineTo);
 								Point.Double max = new Point.Double(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y));
 								Point.Double min = new Point.Double(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y));
-								if(localPos.x < max.x + 4 && localPos.x > min.x - 4 && localPos.y < max.y + 4&& localPos.y > min.y - 4) {
-									double dis = Math.abs((p2.x - p1.x) * (p1.y - localPos.y) - (p1.x - localPos.x) * (p2.y - p1.y)) / Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)); 
-									if(dis < 8) {
+								
+								// Use box approximation first
+								if(globalPos.x < max.x + FRINGE_SIZE && globalPos.x > min.x - FRINGE_SIZE && globalPos.y < max.y + FRINGE_SIZE && globalPos.y > min.y - FRINGE_SIZE) {
+									// Then use highly advanced line-distance formula
+									double dis = Math.abs((p2.x - p1.x) * (p1.y - globalPos.y) - (p1.x - globalPos.x) * (p2.y - p1.y)) /
+											Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)); 
+									if(dis < FRINGE_SIZE) {
 										node.parentList.remove(parentInfo);
 										repaint();
-										return;
+										break nodeLoop;
 									}
 								}
 							}
 						}
 					}
 				}
+				mousePos = e.getPoint();
+				repaint();
 			}
 			
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				if(SwingUtilities.isLeftMouseButton(e)) {
-					Point.Double localPos = new Point.Double(viewPos.x + e.getX()/scale, viewPos.y + e.getY()/scale);
+					// Check if a new node connection is being formed
 					if(selectedSide != Parent.NONE) {
-						Node node = getNodeAtPoint(localPos);
+						// Check if there is a valid terminal node to connect to
+						Point.Double globalPos = convertToGlobalSpace(e.getPoint());
+						Node node = getNodeAtPoint(globalPos);
 						if(node != null) {
-							int side = getSideAtPoint(node, localPos);
+							// Determine which side of the terminal node to connect to
+							int side = getSideAtPoint(node, globalPos);
 							if(side == Parent.NONE) {
 								double relX = node.pos.x - selectedNode.pos.x,
 									   relY = node.pos.y - selectedNode.pos.y;
@@ -98,10 +130,18 @@ public class TechTreePanel extends JPanel {
 									}
 								} else {
 									if(relY < 0) {
-										side = Parent.TOP;
-									} else {
 										side = Parent.BOTTOM;
+									} else {
+										side = Parent.TOP;
 									}
+								}
+							}
+							
+							// Check if there is already a connection between these two nodes
+							for(int i = 0; i < node.parentList.size(); i ++) {
+								if(node.parentList.get(i).id.equals(selectedNode.id)) {
+									node.parentList.remove(i);
+									i --;
 								}
 							}
 							node.parentList.add(new Parent(selectedNode.id, side, selectedSide));
@@ -114,13 +154,12 @@ public class TechTreePanel extends JPanel {
 			
 			@Override 
 			public void mouseMoved(MouseEvent e) {
-				if(tree != null) {
-					Point.Double localPos = new Point.Double(viewPos.x + e.getX()/scale, viewPos.y + e.getY()/scale);
-					Node newHoverNode = getNodeAtPoint(localPos);
-					if(newHoverNode != hoverNode) {
-						hoverNode = newHoverNode;
-						repaint();
-					}
+				// Check which node is currently being hovered over
+				Point.Double globalPos = convertToGlobalSpace(e.getPoint());
+				Node newHoverNode = getNodeAtPoint(globalPos);
+				if(newHoverNode != hoverNode) {
+					hoverNode = newHoverNode;
+					repaint();
 				}
 				mousePos = e.getPoint();
 			}
@@ -128,11 +167,14 @@ public class TechTreePanel extends JPanel {
 			@Override
 			public void mouseDragged(MouseEvent e) {
 				if(SwingUtilities.isLeftMouseButton(e)) {
+					// Check how far the mouse was dragged
 					int deltaX = e.getX() - mousePos.x;
 					int deltaY = e.getY() - mousePos.y;
+					
+					// Check whether to drag the screen OR the selected node
 					if(selectedNode == null) {
 						viewPos.x -= deltaX / scale;
-						viewPos.y -= deltaY / scale;
+						viewPos.y += deltaY / scale;
 					} else if(selectedSide == Parent.NONE){
 						selectedNode.pos.x += deltaX / scale;
 						selectedNode.pos.y -= deltaY / scale;
@@ -144,18 +186,22 @@ public class TechTreePanel extends JPanel {
 			
 			@Override
 			public void mouseExited(MouseEvent e) {
-				hoverNode = null;
-				repaint();
+				// Disable hover effect
+				if(hoverNode != null) {
+					hoverNode = null;
+					repaint();
+				}
 			}
 			
 			@Override
 			public void mouseWheelMoved(MouseWheelEvent e) {
+				// Calculate how much to adjust zoom
 				double prevScale = scale;
-				scale *= Math.pow(1.0905, -e.getWheelRotation());
-				if(scale > 2) { scale = 2; }
-				if(scale < 0.5) { scale = 0.5; }
+				scale *= Math.pow(SCALE_RATE, -e.getWheelRotation());
+				if(scale > MAX_SCALE) { scale = MAX_SCALE; }
+				if(scale < MIN_SCALE) { scale = MIN_SCALE; }
 				viewPos.x -= 0.5*(1/scale - 1/prevScale)*getWidth();
-				viewPos.y -= 0.5*(1/scale - 1/prevScale)*getHeight();
+				viewPos.y += 0.5*(1/scale - 1/prevScale)*getHeight();
 				repaint();
 			}
 		};
@@ -178,95 +224,105 @@ public class TechTreePanel extends JPanel {
 	             RenderingHints.KEY_TEXT_ANTIALIASING,
 	             RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		g2d.setRenderingHints(rh);
-		g2d.setColor(new Color(32, 16, 48));
+		
+		// Draw solid background color
+		g2d.setColor(BACKGROUND_COLOR);
 		g2d.fillRect(0, 0, getWidth(), getHeight());
 		
-		g2d.setColor(new Color(48, 64, 32));
-		g2d.setStroke(new BasicStroke(1.0f));
+		// Draw small grid lines at regular intervals
+		g2d.setColor(GRID_MINOR_COLOR);
+		g2d.setStroke(new BasicStroke(GRID_MINOR_STROKE_SIZE));
 		for(double x = (int) (-viewPos.x % GRID_SIZE*scale); x < getWidth(); x += GRID_SIZE*scale) {
 			g2d.drawLine((int) x, 0, (int) x, getHeight());
 		}
-		for(double y = (int) (-viewPos.y % GRID_SIZE*scale); y < getHeight(); y += GRID_SIZE*scale) {
+		for(double y = (int) (viewPos.y % GRID_SIZE*scale); y < getHeight(); y += GRID_SIZE*scale) {
 			g2d.drawLine(0, (int) y, getWidth(), (int) y);
 		}
-		g2d.setColor(new Color(64, 64, 64));
-		g2d.setStroke(new BasicStroke(3.0f));
+		
+		// Draw large grid lines at x=0 and y=0
+		g2d.setColor(GRID_MAJOR_COLOR);
+		g2d.setStroke(new BasicStroke(GRID_MAJOR_STROKE_SIZE));
 		g2d.drawLine((int) (-viewPos.x*scale), 0, (int) (-viewPos.x*scale), getHeight());
-		g2d.drawLine(0, (int) (-viewPos.y*scale), getWidth(), (int) (-viewPos.y*scale));
+		g2d.drawLine(0, (int) (viewPos.y*scale), getWidth(), (int) (viewPos.y*scale));
 		
+		// Apply coordinate transform (NOTE: although the global space is flipped vertically compared to the local
+		// space, a negative y scale CANNOT be used because this will invert text and icons. Therefore, all y values
+		// used below must be inverted.)
 		g2d.scale(scale, scale);
-		g2d.translate(-viewPos.x, -viewPos.y);
+		g2d.translate(-viewPos.x, viewPos.y);
 		
+		// Draw each node and connection
 		if(tree != null) {
-			g2d.setColor(new Color(192, 192, 192));
-			g2d.setStroke(new BasicStroke(1.0f));
 			for(Node node : tree.getNodeList()) {
 				// Draw the icon of this node
-				g2d.drawImage(IconManager.BLANK_NODE, (int) node.pos.x, (int) -node.pos.y,
-						(int) (NODE_SIZE*node.scale), (int) (NODE_SIZE*node.scale), null);
+				g2d.drawImage(IconManager.BLANK_NODE, (int) node.pos.x, (int) -node.pos.y, (int) (NODE_SIZE*node.scale), (int) (NODE_SIZE*node.scale), null);
 				Image icon = IconManager.get(node.icon);
 				if(icon != null) {
-					g2d.drawImage(icon, (int) node.pos.x, (int) -node.pos.y,
-							(int) (NODE_SIZE*node.scale), (int) (NODE_SIZE*node.scale), null);
+					g2d.drawImage(icon, (int) node.pos.x, (int) -node.pos.y, (int) (NODE_SIZE*node.scale), (int) (NODE_SIZE*node.scale), null);
 				}
 				
 				// Draw an arrow from this node to each of its parents
+				g2d.setColor(CONNECTION_COLOR);
+				g2d.setStroke(new BasicStroke(CONNECTION_STROKE_SIZE));
 				for(Parent parentInfo : node.parentList) {
 					Node parent = tree.getNodeByID(parentInfo.id);
 					if(parent != null) {
-						Point.Double p1 = getSmallNodePos(parent, parentInfo.lineFrom);
-						Point.Double p2 = getSmallNodePos(node, parentInfo.lineTo);
+						Point.Double p1 = getConnectionHandlePos(parent, parentInfo.lineFrom);
+						p1.y *= -1;
+						Point.Double p2 = getConnectionHandlePos(node, parentInfo.lineTo);
+						p2.y *= -1;
 						drawArrow(p1, p2, g2d);
 					}
 				}
-			}
-			
-			// Draw arrow-in-progress
-			if(selectedNode != null && selectedSide > 0 && mousePos != null) {
-				Point.Double p1 = getSmallNodePos(selectedNode, selectedSide);
-				Point.Double localMousePos = new Point.Double(viewPos.x + mousePos.getX()/scale, viewPos.y + mousePos.getY()/scale);
-				drawArrow(p1, localMousePos, g2d);
-			}
-			
-			// Draw green border around selected node
-			if(selectedNode != null) {
-				g2d.setColor(new Color(128, 192, 72));
-				g2d.setStroke(new BasicStroke(SELECTION_HALO_WIDTH));
-				g2d.drawRect((int) selectedNode.pos.x, (int) -selectedNode.pos.y,
-						(int) (NODE_SIZE*selectedNode.scale), (int) (NODE_SIZE*selectedNode.scale));
-			}
-			
-			// Draw four blue nodules around hovered node
-			if(hoverNode != null) {
-				g2d.setColor(new Color(32, 128, 240));
-				g2d.fillOval((int) (hoverNode.pos.x + 0.5*NODE_SIZE*hoverNode.scale - 0.5*SMALL_NODE_SIZE),
-						(int) (-hoverNode.pos.y - 0.5*SMALL_NODE_SIZE),
-						(int) SMALL_NODE_SIZE, (int) SMALL_NODE_SIZE);
-				g2d.fillOval((int) (hoverNode.pos.x - 0.5*SMALL_NODE_SIZE),
-						(int) (-hoverNode.pos.y + 0.5*NODE_SIZE*hoverNode.scale - 0.5*SMALL_NODE_SIZE),
-						(int) SMALL_NODE_SIZE, (int) SMALL_NODE_SIZE);
-				g2d.fillOval((int) (hoverNode.pos.x + 0.5*NODE_SIZE*hoverNode.scale - 0.5*SMALL_NODE_SIZE),
-						(int) (-hoverNode.pos.y + NODE_SIZE*hoverNode.scale - 0.5*SMALL_NODE_SIZE),
-						(int) SMALL_NODE_SIZE, (int) SMALL_NODE_SIZE);
-				g2d.fillOval((int) (hoverNode.pos.x + NODE_SIZE*hoverNode.scale - 0.5*SMALL_NODE_SIZE),
-						(int) (-hoverNode.pos.y + 0.5*NODE_SIZE*hoverNode.scale - 0.5*SMALL_NODE_SIZE),
-						(int) SMALL_NODE_SIZE, (int) SMALL_NODE_SIZE);
-			}
-			
-			// Draw part count in upper left corner of each node
-			for(Node node : tree.getNodeList()) {
-				g2d.setColor(new Color(255, 255, 255));
+				
+				// Draw the name of this node above the upper left corner
+				g2d.setColor(TEXT_COLOR);
 				g2d.drawString(String.format("%s (%d)", LocalizationManager.translate(node.title), tree.getPartList(node).size()), (int) node.pos.x, (int) -node.pos.y - 2);
+			}
+		}
+			
+		// Draw arrow for connection in progress
+		if(selectedNode != null && selectedSide != Parent.NONE && mousePos != null) {
+			Point.Double p1 = getConnectionHandlePos(selectedNode, selectedSide);
+			p1.y *= -1;
+			Point.Double globalMousePos = convertToGlobalSpace(mousePos);
+			globalMousePos.y *= -1;
+			drawArrow(p1, globalMousePos, g2d);
+		}
+		
+		// Draw green border around selected node
+		if(selectedNode != null) {
+			g2d.setColor(SELECTED_NODE_COLOR);
+			g2d.setStroke(new BasicStroke(SELECTED_NODE_STROKE_SIZE));
+			g2d.drawRect((int) selectedNode.pos.x, (int) -selectedNode.pos.y,
+					(int) (NODE_SIZE*selectedNode.scale), (int) (NODE_SIZE*selectedNode.scale));
+		}
+		
+		// Draw four connection handles around hovered node
+		if(hoverNode != null) {
+			g2d.setColor(CONNECTION_HANDLE_COLOR);
+			for(int i = 1; i <= 4; i ++) {
+				Point.Double handlePos = getConnectionHandlePos(hoverNode, i);
+				g2d.fillOval((int) (handlePos.x - 0.5*CONNECTION_HANDLE_SIZE),
+						(int) (-handlePos.y - 0.5*CONNECTION_HANDLE_SIZE),
+						(int) CONNECTION_HANDLE_SIZE, (int) CONNECTION_HANDLE_SIZE);
 			}
 		}
 	}
 	
+	// Returns the global space (tech tree) point corresponding to the given local point (screen space)
+	private Point.Double convertToGlobalSpace(Point p) {
+		return new Point.Double(viewPos.x + (p.getX() / scale), viewPos.y - (p.getY() / scale));
+	}
+	
 	// Returns the node at a given point, or null
 	private Node getNodeAtPoint(Point.Double p) {
-		for(Node node : tree.getNodeList()) {
-			if(p.x > node.pos.x - 4 && p.x < node.pos.x + NODE_SIZE*node.scale + 4 &&
-			   p.y > -node.pos.y - 4 && p.y < -node.pos.y + NODE_SIZE*node.scale + 4) {
-				return node;
+		if (tree != null) {
+			for(Node node : tree.getNodeList()) {
+				if(p.x > node.pos.x - FRINGE_SIZE && p.x < node.pos.x + NODE_SIZE*node.scale + FRINGE_SIZE &&
+				   p.y < node.pos.y + FRINGE_SIZE && p.y > node.pos.y - NODE_SIZE*node.scale - FRINGE_SIZE) {
+					return node;
+				}
 			}
 		}
 		return null;
@@ -275,9 +331,9 @@ public class TechTreePanel extends JPanel {
 	// Returns which side of the given node is located at the given point, or NONE if none are close
 	private int getSideAtPoint(Node node, Point.Double p) {
 		for(int i = 1; i <= 4; i ++) {
-			Point.Double smallNodePos = getSmallNodePos(node, i);
-			if(p.x > smallNodePos.x - 2 && p.x < smallNodePos.x + SMALL_NODE_SIZE*node.scale + 2 &&
-			   p.y > smallNodePos.y - 2 && p.y < smallNodePos.y + SMALL_NODE_SIZE*node.scale + 2) {
+			Point.Double smallNodePos = getConnectionHandlePos(node, i);
+			if(p.x > smallNodePos.x - FRINGE_SIZE && p.x < smallNodePos.x + CONNECTION_HANDLE_SIZE*node.scale + FRINGE_SIZE &&
+			   p.y > smallNodePos.y - FRINGE_SIZE && p.y < smallNodePos.y + CONNECTION_HANDLE_SIZE*node.scale + FRINGE_SIZE) {
 				return i;
 			}
 		}
@@ -285,23 +341,23 @@ public class TechTreePanel extends JPanel {
 	}
 	
 	
-	// Returns the location of the small node on the given side of a large node
-	private Point.Double getSmallNodePos(Node node, int side) {
-		Point.Double p = new Point.Double(node.pos.x, -node.pos.y);
+	// Returns the location of the connection handle on the given side of a node
+	private Point.Double getConnectionHandlePos(Node node, int side) {
+		Point.Double p = new Point.Double(node.pos.x, node.pos.y);
 		switch(side) {
 		case Parent.TOP:
 			p.x += 0.5*NODE_SIZE*node.scale;
 			break;
 		case Parent.RIGHT:
 			p.x += NODE_SIZE*node.scale;
-			p.y += 0.5*NODE_SIZE*node.scale;
+			p.y -= 0.5*NODE_SIZE*node.scale;
 			break;
 		case Parent.BOTTOM:
 			p.x += 0.5*NODE_SIZE*node.scale;
-			p.y += NODE_SIZE*node.scale;
+			p.y -= NODE_SIZE*node.scale;
 			break;
 		case Parent.LEFT:
-			p.y += 0.5*NODE_SIZE*node.scale;
+			p.y -= 0.5*NODE_SIZE*node.scale;
 			break;
 		}
 		return p;
