@@ -116,7 +116,7 @@ public class TechTreePanel extends JPanel {
 						// Check if there is a valid terminal node to connect to
 						Point.Double globalPos = convertToGlobalSpace(e.getPoint());
 						Node node = getNodeAtPoint(globalPos);
-						if(node != null) {
+						if(node != null && node != selectedNode) {
 							// Determine which side of the terminal node to connect to
 							int side = getSideAtPoint(node, globalPos);
 							if(side == Parent.NONE) {
