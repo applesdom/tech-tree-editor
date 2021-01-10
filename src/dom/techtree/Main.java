@@ -264,7 +264,10 @@ public class Main {
 		JMenu fileMenu = new JMenu("File");
 		menuBar.add(fileMenu);
 		
-		newMenuItem = new JMenuItem("New");
+		fileMenu.add(new JMenuItem("KSP Directory Setup (TODO)"));
+		fileMenu.addSeparator();
+		
+		newMenuItem = new JMenuItem("New  ");
 		newMenuItem.addActionListener(menuItemActionListener);
 		fileMenu.add(newMenuItem);
 		
@@ -275,6 +278,17 @@ public class Main {
 		exportMenuItem = new JMenuItem("Export");
 		exportMenuItem.addActionListener(menuItemActionListener);
 		fileMenu.add(exportMenuItem);
+		
+		JMenu editMenu = new JMenu("Edit  ");
+		menuBar.add(editMenu);
+		editMenu.add(new JMenuItem("Undo (TODO)"));
+		editMenu.add(new JMenuItem("Redo (TODO)"));
+		editMenu.addSeparator();
+		editMenu.add(new JMenuItem("View Part List (TODO)"));
+		
+		JMenu helpMenu = new JMenu("Help  ");
+		menuBar.add(helpMenu);
+		helpMenu.add(new JMenuItem("About (TODO)"));
 		
 		treePanel = new TechTreePanel() {
 			@Override
