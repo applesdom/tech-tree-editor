@@ -18,6 +18,8 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -34,6 +36,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
@@ -76,6 +79,7 @@ public class Main {
 			
 			//stockTree = TechTreeIO.readAll(new File("C:/Apps/Steam/steamapps/common/Kerbal Space Program/GameData/Squad"));
 			//tree = TechTreeIO.readAll(new File("C:/Apps/Steam/steamapps/common/Kerbal Space Program/GameData/Squad"));
+			stockTree = TechTreeIO.readAll(new File("/home/dom/.local/share/Steam/steamapps/common/Kerbal Space Program/GameData/Squad/"));
 			tree = TechTreeIO.readAll(new File("/home/dom/.local/share/Steam/steamapps/common/Kerbal Space Program/GameData/Squad/"));
 			treePanel.setTechTree(tree);
 		} catch(Exception e) {
@@ -515,7 +519,20 @@ public class Main {
 			if(tree != null) {
 				partListPanel.removeAll();
 				for(Part part : tree.getPartList(node)) {
-					PartPanel partPanel = new PartPanel(part);
+					PartPanel partPanel = new PartPanel(part, true, true);
+					partPanel.addMouseListener(new MouseAdapter() {
+						@Override
+						public void mousePressed(MouseEvent e) {
+							if(SwingUtilities.isLeftMouseButton(e)) {
+								if(e.getClickCount() == 2) {
+									partListPanel.remove(partPanel);
+									tree.removePart(part);
+									partListPanel.revalidate();
+									partListPanel.repaint();
+								}
+							}
+						}
+					});
 					partListPanel.add(partPanel);
 				}
 			}
