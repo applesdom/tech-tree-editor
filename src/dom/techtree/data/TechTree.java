@@ -88,6 +88,16 @@ public class TechTree {
 		return partList;
 	}
 	
+	public ArrayList<Part> getPartList(String nodeID) {
+		ArrayList<Part> partList = new ArrayList<Part>();
+		for (Part part : getPartList()) {
+			if (part.techRequired.equals(nodeID)) {
+				partList.add(part);
+			}
+		}
+		return partList;
+	}
+	
 	public void clear() {
 		nodeMap.clear();
 		partMap.clear();

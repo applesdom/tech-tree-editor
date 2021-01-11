@@ -18,12 +18,15 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -47,6 +50,7 @@ import dom.techtree.data.Node;
 import dom.techtree.data.Part;
 import dom.techtree.data.TechTree;
 import dom.techtree.gui.PartPanel;
+import dom.techtree.gui.PartSelectDialog;
 import dom.techtree.gui.TechTreePanel;
 
 public class Main {
@@ -65,10 +69,12 @@ public class Main {
 	private static JPanel nodeInfoPanel, partListPanel;
 	private static JLabel iconLabel;
 	private static JTextField titleField, costField, scaleField, nodeNameField, iconField, idField;
+	private static JButton addPartButton;
 	private static JTextArea descriptionArea;
 	private static JCheckBox hideEmptyBox, anyToUnlockBox;
 	private static JMenuItem newMenuItem, importMenuItem, exportMenuItem;
 	private static JFileChooser importChooser, exportChooser;
+	private static PartSelectDialog partSelectDialog;
 	
 	public static void main(String[] args) {
 		initGUI();
@@ -253,6 +259,22 @@ public class Main {
 			}
 		};
 		
+		ActionListener addPartListener = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				partSelectDialog.setPartList(tree.getPartList("None"));
+				List<Part> result = partSelectDialog.showSelectDialog();
+				if(result != null) {
+					for(Part part : result) {
+						part.techRequired = selectedNode.id;
+						partListPanel.add(new PartPanel(part));
+					}
+					partListPanel.revalidate();
+					partListPanel.repaint();
+				}
+			}
+		};
+		
 		frame = new JFrame("Tech Tree Editor");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setIconImage(IconManager.LOGO);
@@ -417,11 +439,17 @@ public class Main {
 		temp.setLocation(0, 179);
 		nodeInfoPanel.add(temp);
 		
-		temp = new JLabel(" Part Title");
+		temp = new JLabel(" Part List");
 		temp.setFont(temp.getFont().deriveFont(Font.BOLD));
 		temp.setSize(100, 20);
 		temp.setLocation(0, 204);
 		nodeInfoPanel.add(temp);
+		
+		addPartButton = new JButton("+");
+		addPartButton.addActionListener(addPartListener);
+		addPartButton.setSize(30, 20);
+		addPartButton.setLocation(60, 204);
+		nodeInfoPanel.add(addPartButton);
 		
 		temp = new JLabel("Hidden");
 		temp.setFont(temp.getFont().deriveFont(Font.BOLD));
@@ -455,6 +483,8 @@ public class Main {
 		exportChooser = new JFileChooser();
 		exportChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		
+		partSelectDialog = new PartSelectDialog(frame);
+		
 		updateNodeInfo(null);
 	}
 	
@@ -483,6 +513,7 @@ public class Main {
 			nodeNameField.setEnabled(false);
 			iconField.setEnabled(false);
 			idField.setEnabled(false);
+			addPartButton.setEnabled(false);
 			
 			if(tree != null) {
 				partListPanel.removeAll();
@@ -529,6 +560,7 @@ public class Main {
 			nodeNameField.setEnabled(true);
 			iconField.setEnabled(true);
 			idField.setEnabled(true);
+			addPartButton.setEnabled(true);
 			
 			if(tree != null) {
 				partListPanel.removeAll();
@@ -540,7 +572,7 @@ public class Main {
 							if(SwingUtilities.isLeftMouseButton(e)) {
 								if(e.getClickCount() == 2) {
 									partListPanel.remove(partPanel);
-									tree.removePart(part);
+									part.techRequired = "None";
 									partListPanel.revalidate();
 									partListPanel.repaint();
 								}

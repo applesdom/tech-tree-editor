@@ -24,6 +24,7 @@ public class PartPanel extends JPanel {
 							   INVALID_COLOR = new Color(255, 192, 192),
 							   SELECTED_COLOR = new Color(196, 232, 128);
 	
+	private Part part;
 	private JCheckBox hiddenBox;
 	private JTextField entryCostField;
 	private boolean selected;
@@ -33,6 +34,8 @@ public class PartPanel extends JPanel {
 	}
 	
 	public PartPanel(Part part, boolean selectable, boolean editable) {
+		this.part = part;
+		
 		this.setLayout(null);
 		this.setBorder(BorderFactory.createRaisedBevelBorder());
 		this.setPreferredSize(new Dimension(390, 27));
@@ -113,5 +116,9 @@ public class PartPanel extends JPanel {
 	
 	public boolean isSelected() {
 		return selected;
+	}
+	
+	public Part getPart() {
+		return part;
 	}
 }
