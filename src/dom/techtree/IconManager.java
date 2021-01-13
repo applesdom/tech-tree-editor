@@ -14,22 +14,27 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
 public class IconManager {
-	public static final String STOCK_ICON_MAPPING_FILE_NAME = "/stock_icon_mapping.csv",
-							   STOCK_ICON_DIR_NAME = "/stock_icon";
 	public static final Image BLANK_NODE = new ImageIcon(IconManager.class.getResource("/node.png")).getImage(),
 							  BLANK_SELECTED_NODE = new ImageIcon(IconManager.class.getResource("/node_selected.png")).getImage(),
 							  LOGO = new ImageIcon(IconManager.class.getResource("/logo.png")).getImage();
+	public static final String STOCK_ICON_MAPPING_FILE_NAME = "/stock_icon_mapping.csv";
 	
 	private static Map<String, Image> imgMap = new HashMap<String, Image>();
+	private static Map<String, String> aliasMap = new HashMap<String, String>();
 	
 	// Returns an icon associated with the given internal name (or file path)
 	public static Image get(String name) {
-		if(imgMap.isEmpty()) {
-			readImages();
+		if(aliasMap.isEmpty()) {
+			readAliases();
+		}
+		
+		String alias = aliasMap.get(name);
+		if(alias == null) {
+			alias = name;
 		}
 		
 		Image image;
-		if((image = imgMap.get(name)) != null) {
+		if((image = imgMap.get(alias)) != null) {
 			return image;
 		}
 		
@@ -39,33 +44,50 @@ public class IconManager {
 		} catch(FileNotFoundException e) {
 			// e.printStackTrace();
 		} catch (IOException e) {
-			System.out.println(file.getPath());
+			System.out.println("Couldn\'t find image: " + name);
 			//e.printStackTrace();
 		}
 		
 		return null;
 	}
-	
-	// Populates the imgMap, runs once the first time an image is requested
-	// The internal names of stock icons do not exactly match the file names, so
-	// a hand-made .csv is read to provide the mapping.
-	private static void readImages() {
+
+	private static void readAliases() {
 		// Load stock icon name mappings from predefined .csv file
-		BufferedReader br = new BufferedReader(new InputStreamReader(
-				Main.class.getResourceAsStream(STOCK_ICON_MAPPING_FILE_NAME)));
+		BufferedReader br = new BufferedReader(new InputStreamReader(Main.class.getResourceAsStream(STOCK_ICON_MAPPING_FILE_NAME)));
 		String line;
 		try {
 			// For each line in the .csv, add an entry to the imgMap
 			while((line = br.readLine()) != null) {
 				String[] lineSplit = line.split(",");
 				// 1st string is internal name of icon, 2nd string is file name
-				URL url = Main.class.getResource(STOCK_ICON_DIR_NAME + "/" + lineSplit[1] + ".png");
-				if(url != null) {
-					imgMap.put(lineSplit[0], new ImageIcon(url).getImage());
-				}
+				aliasMap.put(lineSplit[0], lineSplit[1]);
 			}
 		} catch(IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public static int readIconDirectory(File dir) {
+		if(!dir.exists() || !dir.isDirectory()) {
+			return -1;
+		}
+		int count = 0;
+		for(File file : dir.listFiles()) {
+			if(!file.getName().endsWith(".png")) {
+				continue;
+			}
+			try {
+				String trimmedName = file.getName().substring(0, file.getName().length() - 4);
+				imgMap.put(trimmedName, ImageIO.read(file));
+				count ++;
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return count;
+	}
+	
+	public static void clear() {
+		imgMap.clear();
 	}
 }

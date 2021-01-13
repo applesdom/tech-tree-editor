@@ -15,6 +15,9 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -51,6 +54,7 @@ import dom.techtree.data.Part;
 import dom.techtree.data.TechTree;
 import dom.techtree.gui.PartPanel;
 import dom.techtree.gui.PartSelectDialog;
+import dom.techtree.gui.ImportDialog;
 import dom.techtree.gui.TechTreePanel;
 
 public class Main {
@@ -75,11 +79,15 @@ public class Main {
 	private static JMenuItem newMenuItem, importMenuItem, exportMenuItem;
 	private static JFileChooser importChooser, exportChooser;
 	private static PartSelectDialog partSelectDialog;
+	private static ImportDialog importDialog;
 	
 	public static void main(String[] args) {
 		initGUI();
 		
 		selectedNode = null;
+		
+		importDialog.setVisible(true);
+		
 		try {
 			LocalizationManager.readLocalizationFile(new File(DEFAULT_KSP_DIR, "GameData/Squad/Localization/dictionary.cfg"));
 			
@@ -484,6 +492,8 @@ public class Main {
 		exportChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		
 		partSelectDialog = new PartSelectDialog(frame);
+		
+		importDialog = new ImportDialog(frame);
 		
 		updateNodeInfo(null);
 	}

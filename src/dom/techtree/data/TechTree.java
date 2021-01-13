@@ -37,6 +37,10 @@ public class TechTree {
 		}
 	}
 	
+	public int getNodeCount() {
+		return nodeMap.size();
+	}
+	
 	public boolean hasNode(String id) {
 		return nodeMap.containsKey(id);
 	}
@@ -72,6 +76,10 @@ public class TechTree {
 			addPart(part);
 			return null;
 		}
+	}
+	
+	public int getPartCount() {
+		return partMap.size();
 	}
 	
 	public Collection<Part> getPartList() {

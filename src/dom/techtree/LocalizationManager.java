@@ -19,23 +19,30 @@ public class LocalizationManager {
 		return translationMap.containsKey(key);
 	}
 	
-	public static void readLocalizationFile(File file) {
+	public static int readLocalizationFile(File file) {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(file));
-			
+			int count = 0;
 			String line;
 			while((line = br.readLine()) != null) {
 				line = line.strip();
 				int splitIndex = line.indexOf(" = ");
 				if(splitIndex > 0) {
 					translationMap.put(line.substring(0, splitIndex), line.substring(splitIndex + 3));
+					count ++;
 				} else {
 					// Ignore malformed lines
 				}
-				
 			}
+			br.close();
+			return count;
 		} catch(IOException e) {
 			e.printStackTrace();
 		}
+		return -1;
+	}
+	
+	public static void clear() {
+		translationMap.clear();
 	}
 }
