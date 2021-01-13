@@ -3,28 +3,20 @@ package dom.techtree;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.GridLayout;
 import java.awt.Image;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -52,18 +44,15 @@ import javax.swing.event.DocumentListener;
 import dom.techtree.data.Node;
 import dom.techtree.data.Part;
 import dom.techtree.data.TechTree;
+import dom.techtree.gui.ImportDialog;
 import dom.techtree.gui.PartPanel;
 import dom.techtree.gui.PartSelectDialog;
-import dom.techtree.gui.ImportDialog;
 import dom.techtree.gui.TechTreePanel;
 
 public class Main {
 	private static final Color NORMAL_COLOR = new JTextField().getBackground(),
 			   				   INVALID_COLOR = new Color(255, 192, 192),
 			   				   LOC_COLOR = new Color(255, 255, 160);
-	
-	// TODO allow this to be set on first startup and saved persistently
-	private static final File DEFAULT_KSP_DIR = new File("/home/dom/.local/share/Steam/steamapps/common/Kerbal Space Program/");
 	
 	private static TechTree tree, stockTree;
 	private static Node selectedNode;
@@ -87,18 +76,6 @@ public class Main {
 		selectedNode = null;
 		
 		importDialog.setVisible(true);
-		
-		try {
-			LocalizationManager.readLocalizationFile(new File(DEFAULT_KSP_DIR, "GameData/Squad/Localization/dictionary.cfg"));
-			
-			//stockTree = TechTreeIO.readAll(new File("C:/Apps/Steam/steamapps/common/Kerbal Space Program/GameData/Squad"));
-			//tree = TechTreeIO.readAll(new File("C:/Apps/Steam/steamapps/common/Kerbal Space Program/GameData/Squad"));
-			stockTree = TechTreeIO.readAll(new File("/home/dom/.local/share/Steam/steamapps/common/Kerbal Space Program/GameData/Squad/"));
-			tree = TechTreeIO.readAll(new File("/home/dom/.local/share/Steam/steamapps/common/Kerbal Space Program/GameData/Squad/"));
-			treePanel.setTechTree(tree);
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
 	}
 	
 	@SuppressWarnings("serial")
@@ -115,15 +92,15 @@ public class Main {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(e.getSource() == newMenuItem) {
-					tree.clear();
-					treePanel.setTechTree(tree);
+					Persistent.currentTree.clear();
+					treePanel.setTechTree(Persistent.currentTree);
 					updateNodeInfo(null);
 					frame.repaint();
 				} else if(e.getSource() == importMenuItem) {
 					if(importChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
 			            try {
-							tree = TechTreeIO.readAll(importChooser.getSelectedFile());
-							treePanel.setTechTree(tree);
+			            	Persistent.currentTree = TechTreeIO.readAll(importChooser.getSelectedFile());
+							treePanel.setTechTree(Persistent.currentTree);
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}
@@ -131,7 +108,7 @@ public class Main {
 				} else if(e.getSource() == exportMenuItem) {
 					if(exportChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
 			            try {
-							TechTreeIO.write(tree, stockTree, exportChooser.getSelectedFile());
+							TechTreeIO.write(Persistent.currentTree, stockTree, exportChooser.getSelectedFile());
 						} catch (FileNotFoundException e1) {
 							e1.printStackTrace();
 						}
@@ -210,9 +187,9 @@ public class Main {
 																		   iconLabel.getHeight(),
 																		   Image.SCALE_SMOOTH)));
 				} else if(e.getDocument() == idField.getDocument()) {
-					Node conflictNode = tree.getNodeByID(idField.getText());
+					Node conflictNode = Persistent.currentTree.getNodeByID(idField.getText());
 					if(conflictNode == null || conflictNode == selectedNode) {
-						for(Part part : tree.getPartList(selectedNode)) {
+						for(Part part : Persistent.currentTree.getPartList(selectedNode)) {
 							part.techRequired = idField.getText();
 						}
 						selectedNode.id = idField.getText();
@@ -270,7 +247,7 @@ public class Main {
 		ActionListener addPartListener = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				partSelectDialog.setPartList(tree.getPartList("None"));
+				partSelectDialog.setPartList(Persistent.currentTree.getPartList("None"));
 				List<Part> result = partSelectDialog.showSelectDialog();
 				if(result != null) {
 					for(Part part : result) {
@@ -494,6 +471,12 @@ public class Main {
 		partSelectDialog = new PartSelectDialog(frame);
 		
 		importDialog = new ImportDialog(frame);
+		importDialog.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				treePanel.setTechTree(Persistent.currentTree);
+			}
+		});
 		
 		updateNodeInfo(null);
 	}
@@ -525,9 +508,9 @@ public class Main {
 			idField.setEnabled(false);
 			addPartButton.setEnabled(false);
 			
-			if(tree != null) {
+			if(Persistent.currentTree != null) {
 				partListPanel.removeAll();
-				for(Part part : tree.getPartList()) {
+				for(Part part : Persistent.currentTree.getPartList()) {
 					PartPanel partPanel = new PartPanel(part);
 					partListPanel.add(partPanel);
 				}
@@ -572,9 +555,9 @@ public class Main {
 			idField.setEnabled(true);
 			addPartButton.setEnabled(true);
 			
-			if(tree != null) {
+			if(Persistent.currentTree != null) {
 				partListPanel.removeAll();
-				for(Part part : tree.getPartList(node)) {
+				for(Part part : Persistent.currentTree.getPartList(node)) {
 					PartPanel partPanel = new PartPanel(part, true, true);
 					partPanel.addMouseListener(new MouseAdapter() {
 						@Override

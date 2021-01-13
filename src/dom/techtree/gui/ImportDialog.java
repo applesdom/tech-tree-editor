@@ -83,9 +83,7 @@ public class ImportDialog extends JDialog {
 		okButton = new JButton("Finish");
 		okButton.setSize(80, 25);
 		okButton.setLocation(615, 65);
-		if(Persistent.tree == null) {
-			okButton.setEnabled(false);
-		}
+		okButton.setEnabled(false);
 		this.add(okButton);
 		
 		fileChooser = new JFileChooser();
@@ -186,6 +184,6 @@ public class ImportDialog extends JDialog {
 		
 		outputLabel.setText(String.format("Loaded %d parts, %d nodes, %d icons, and %d LOC values", tree.getPartCount(), tree.getNodeCount(), iconCount, locCount));
 		okButton.setEnabled(true);
-		//Persistent.tree = tree;
+		Persistent.currentTree = tree;
 	}
 }
