@@ -108,7 +108,6 @@ public class ImportDialog extends JDialog {
 							load();							
 						}
 					});
-					outputLabel.setText("...");
 					thread.start();
 				} else if(e.getSource() == okButton) {
 					thisDialog.dispatchEvent(new WindowEvent(thisDialog, WindowEvent.WINDOW_CLOSING));
@@ -121,6 +120,8 @@ public class ImportDialog extends JDialog {
 	}
 	
 	private void load() {
+		outputLabel.setText("...");
+		
 		// Make sure specified directory exists
 		File baseDir = new File(pathField.getText());
 		if(!baseDir.exists()) {
@@ -151,9 +152,12 @@ public class ImportDialog extends JDialog {
 			if(partsDir.exists()) {
 				tree = TechTreeIO.readAll(tree, partsDir);
 			}
+			outputLabel.setText(String.format("Loaded %d parts...", tree.getPartCount()));
+			
 			if(techTreeFile.exists()) {
 				tree = TechTreeIO.read(tree, techTreeFile);
 			}
+			outputLabel.setText(String.format("Loaded %d parts, %d nodes...", tree.getPartCount(), tree.getNodeCount()));
 		} catch (IOException e1) {
 			outputLabel.setText("ERROR: " + e1.getMessage());
 			return;
@@ -164,6 +168,7 @@ public class ImportDialog extends JDialog {
 		if(iconDir.exists()) {
 			iconCount += IconManager.readIconDirectory(iconDir);
 		}
+		outputLabel.setText(String.format("Loaded %d parts, %d nodes, %d icons...", tree.getPartCount(), tree.getNodeCount(), iconCount));
 		
 		// Load localization definitions
 		int locCount = 0;
