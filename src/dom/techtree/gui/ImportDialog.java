@@ -66,6 +66,7 @@ public class ImportDialog extends JDialog {
 		loadModsCheckBox = new JCheckBox("Include mods?");
 		loadModsCheckBox.setSize(140, 20);
 		loadModsCheckBox.setLocation(500, 5);
+		loadModsCheckBox.setSelected(true);
 		this.add(loadModsCheckBox);
 		
 		outputLabel = new JLabel(Persistent.setupDialogOutputText);
@@ -158,6 +159,13 @@ public class ImportDialog extends JDialog {
 				tree = TechTreeIO.read(tree, techTreeFile);
 			}
 			outputLabel.setText(String.format("Loaded %d parts, %d nodes...", tree.getPartCount(), tree.getNodeCount()));
+			
+			if(loadModsCheckBox.isSelected()) {
+				for(File file : gameDataDir.listFiles()) {
+					tree = TechTreeIO.readAll(tree, file);
+					outputLabel.setText(String.format("Loaded %d parts, %d nodes...", tree.getPartCount(), tree.getNodeCount()));
+				}
+			}
 		} catch (IOException e1) {
 			outputLabel.setText("ERROR: " + e1.getMessage());
 			return;
