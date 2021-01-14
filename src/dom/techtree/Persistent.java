@@ -11,7 +11,9 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import dom.techtree.data.TechTree;
 
@@ -22,6 +24,7 @@ public class Persistent {
 	public static TechTree currentTree, referenceTree;
 	public static String kspDirectory = "/home/dom/.local/share/Steam/steamapps/common/Kerbal Space Program";
 	public static String setupDialogOutputText;
+	public static Map<String, String> locTranslationMap = new HashMap<String, String>();
 	
 	public static void save() throws IOException{
 		File file = PERSISTENT_FILE;
