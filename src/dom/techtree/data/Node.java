@@ -1,10 +1,13 @@
 package dom.techtree.data;
 
 import java.awt.Point;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Node {
+public class Node implements Serializable {
+	private static final long serialVersionUID = -744513963369870594L;
+
 	// A unique identifier, used for part reqs and parent connections
 	public String id;
 	

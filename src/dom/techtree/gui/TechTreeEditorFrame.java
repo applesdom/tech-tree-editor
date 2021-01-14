@@ -140,6 +140,7 @@ public class TechTreeEditorFrame extends JFrame {
 			}
 		};
 		treePanel.setPreferredSize(new Dimension(600, 600));
+		treePanel.setTechTree(Persistent.currentTree);
 		this.add(treePanel, BorderLayout.CENTER);
 		
 		JPanel sidePanel = new JPanel();

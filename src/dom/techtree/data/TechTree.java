@@ -1,12 +1,15 @@
 package dom.techtree.data;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TechTree {
+public class TechTree implements Serializable {
+	private static final long serialVersionUID = 3688113512358774621L;
+	
 	private final Map<String, Node> nodeMap = new HashMap<String, Node>();
 	private final Map<String, Part> partMap = new HashMap<String, Part>();
 	

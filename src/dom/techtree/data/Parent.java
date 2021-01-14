@@ -1,6 +1,10 @@
 package dom.techtree.data;
 
-public class Parent {
+import java.io.Serializable;
+
+public class Parent implements Serializable {
+	private static final long serialVersionUID = -1815542288964964747L;
+
 	public static final int NONE = 0, TOP = 1, RIGHT = 2, BOTTOM = 3, LEFT = 4;
 	
 	public String id;
