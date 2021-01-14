@@ -20,9 +20,10 @@ import dom.techtree.data.Part;
 
 @SuppressWarnings("serial")
 public class PartPanel extends JPanel {
-	private static final Color NORMAL_COLOR = new JTextField().getBackground(),
-							   INVALID_COLOR = new Color(255, 192, 192),
-							   SELECTED_COLOR = new Color(196, 232, 128);
+	private static final Color NORMAL_FIELD_COLOR = new Color(255, 255, 255),
+			   				   INVALID_FIELD_COLOR = new Color(255, 192, 192),
+			   				   NORMAL_COLOR = new JPanel().getBackground(),
+			   				   SELECTED_COLOR = new Color(196, 232, 128);
 	
 	private Part part;
 	private JCheckBox hiddenBox;
@@ -92,10 +93,10 @@ public class PartPanel extends JPanel {
 				@Override
 				public void changedUpdate(DocumentEvent e) {
 					try {
-						entryCostField.setBackground(NORMAL_COLOR);
+						entryCostField.setBackground(NORMAL_FIELD_COLOR);
 						part.entryCost = Double.parseDouble(entryCostField.getText());
 					} catch(NumberFormatException e1) {
-						entryCostField.setBackground(INVALID_COLOR);
+						entryCostField.setBackground(INVALID_FIELD_COLOR);
 					}
 				}
 				
