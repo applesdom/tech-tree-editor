@@ -12,10 +12,18 @@ public class LocalizationManager {
 	public static Map<String, String> dictionary = new HashMap<String, String>();
 	
 	public static String translate(String key) {
+		if(dictionary.isEmpty()) {
+			load();
+		}
+		
 		return dictionary.get(key);
 	}
 	
 	public static boolean hasTranslation(String key) {
+		if(dictionary.isEmpty()) {
+			load();
+		}
+		
 		return dictionary.containsKey(key);
 	}
 	
