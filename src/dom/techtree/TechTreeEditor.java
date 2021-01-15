@@ -12,6 +12,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.BoxLayout;
@@ -34,6 +35,7 @@ import dom.techtree.data.Part;
 import dom.techtree.data.TechTree;
 import dom.techtree.gui.ImportDialog;
 import dom.techtree.gui.NodeInfoPanel;
+import dom.techtree.gui.PartListPanel;
 import dom.techtree.gui.PartPanel;
 import dom.techtree.gui.PartSelectDialog;
 import dom.techtree.gui.TechTreePanel;
@@ -45,7 +47,7 @@ public class TechTreeEditor extends JFrame {
 	private TechTreePanel treePanel;
 	private NodeInfoPanel nodeInfoPanel;
 	private JButton addPartButton;
-	private JPanel partListPanel;
+	private PartListPanel partListPanel;
 	
 	private ImportDialog importDialog;
 	private PartSelectDialog partSelectDialog;
@@ -110,26 +112,7 @@ public class TechTreeEditor extends JFrame {
 				nodeInfoPanel.setNode(node);
 				addPartButton.setEnabled(true);
 				if(Persistent.currentTree != null) {
-					partListPanel.removeAll();
-					for(Part part : Persistent.currentTree.getPartList(node)) {
-						PartPanel partPanel = new PartPanel(part, true, true);
-						partPanel.addMouseListener(new MouseAdapter() {
-							@Override
-							public void mousePressed(MouseEvent e) {
-								if(SwingUtilities.isLeftMouseButton(e)) {
-									if(e.getClickCount() == 2) {
-										partListPanel.remove(partPanel);
-										part.techRequired = "None";
-										partListPanel.revalidate();
-										partListPanel.repaint();
-									}
-								}
-							}
-						});
-						partListPanel.add(partPanel);
-					}
-					partListPanel.revalidate();
-					partListPanel.repaint();
+					partListPanel.setPartList(Persistent.currentTree.getPartList(node));
 				}
 			}
 			
@@ -139,14 +122,8 @@ public class TechTreeEditor extends JFrame {
 				nodeInfoPanel.setNode(null);
 				addPartButton.setEnabled(false);
 				if(Persistent.currentTree != null) {
-					partListPanel.removeAll();
-					for(Part part : Persistent.currentTree.getPartList()) {
-						PartPanel partPanel = new PartPanel(part);
-						partListPanel.add(partPanel);
-					}
+					partListPanel.setPartList(new ArrayList<Part>(Persistent.currentTree.getPartList()));
 				}
-				partListPanel.revalidate();
-				partListPanel.repaint();
 			}
 		};
 		treePanel.setPreferredSize(new Dimension(600, 600));
@@ -185,12 +162,11 @@ public class TechTreeEditor extends JFrame {
 		temp.setLocation(290, 204);
 		nodeInfoPanel.add(temp);
 		
-		partListPanel = new JPanel();
-		partListPanel.setBackground(new JTextField().getBackground());
-		partListPanel.setLayout(new BoxLayout(partListPanel, BoxLayout.PAGE_AXIS));
-		JScrollPane scrollPane = new JScrollPane(partListPanel);
-		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		sidePanel.add(scrollPane, BorderLayout.CENTER);
+		partListPanel = new PartListPanel();
+		if(Persistent.currentTree != null) {
+			partListPanel.setPartList(new ArrayList<Part>(Persistent.currentTree.getPartList()));
+		}
+		sidePanel.add(partListPanel, BorderLayout.CENTER);
 		
 		this.setVisible(true);
 		
@@ -224,10 +200,8 @@ public class TechTreeEditor extends JFrame {
 					if(result != null) {
 						for(Part part : result) {
 							part.techRequired = selectedNode.id;
-							partListPanel.add(new PartPanel(part));
+							partListPanel.addPart(part);
 						}
-						partListPanel.revalidate();
-						partListPanel.repaint();
 					}
 				}
 			}
