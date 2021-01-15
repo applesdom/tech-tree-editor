@@ -79,7 +79,7 @@ public class IconManager {
 	}
 	
 	private static void loadAliasMap() {
-		BufferedReader br = new BufferedReader(new InputStreamReader(Main.class.getResourceAsStream(STOCK_ICON_MAPPING_FILE_NAME)));
+		BufferedReader br = new BufferedReader(new InputStreamReader(IconManager.class.getResourceAsStream(STOCK_ICON_MAPPING_FILE_NAME)));
 		try {
 			String line;
 			while((line = br.readLine()) != null) {

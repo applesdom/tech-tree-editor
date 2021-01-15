@@ -1,4 +1,4 @@
-package dom.techtree.gui;
+package dom.techtree;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -28,15 +28,17 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
-import dom.techtree.IconManager;
-import dom.techtree.Persistent;
-import dom.techtree.TechTreeIO;
 import dom.techtree.data.Node;
 import dom.techtree.data.Part;
 import dom.techtree.data.TechTree;
+import dom.techtree.gui.ImportDialog;
+import dom.techtree.gui.NodeInfoPanel;
+import dom.techtree.gui.PartPanel;
+import dom.techtree.gui.PartSelectDialog;
+import dom.techtree.gui.TechTreePanel;
 
 @SuppressWarnings("serial")
-public class TechTreeEditorFrame extends JFrame {
+public class TechTreeEditor extends JFrame {
 	private JMenuItem importMenuItem, exportMenuItem;
 	
 	private TechTreePanel treePanel;
@@ -50,8 +52,9 @@ public class TechTreeEditorFrame extends JFrame {
 	
 	private Node selectedNode;
 	
-	public TechTreeEditorFrame() {
+	public TechTreeEditor() {
 		super();
+		Persistent.load();
 		initGUI();
 		initListeners();
 		
@@ -69,6 +72,8 @@ public class TechTreeEditorFrame extends JFrame {
 		}
 		
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setSize(800, 600);
+		this.setLocation(0, 0);
 		this.setTitle("Tech Tree Editor");
 		this.setIconImage(IconManager.LOGO);
 		this.setLayout(new BorderLayout());
@@ -233,11 +238,18 @@ public class TechTreeEditorFrame extends JFrame {
 		WindowAdapter windowAdapter = new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				if(e.getSource() == importDialog) {
+				if(e.getSource() == thisFrame) {
+					Persistent.save();
+				} else if(e.getSource() == importDialog) {
 					treePanel.setTechTree(Persistent.currentTree);
 				}
 			}
 		};
+		this.addWindowListener(windowAdapter);
 		importDialog.addWindowListener(windowAdapter);
+	}
+	
+	public static void main(String[] args) {
+		new TechTreeEditor();
 	}
 }

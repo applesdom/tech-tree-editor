@@ -3,7 +3,6 @@ package dom.techtree;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -21,7 +20,7 @@ public class Persistent {
 	public static TechTree currentTree;
 	public static File gameDataDirectory;
 	
-	public static void save() throws IOException{
+	public static void save() {
 		File file = PERSISTENT_FILE;
 
 		try {
@@ -38,12 +37,12 @@ public class Persistent {
 				out.writeObject(sObject);
 			}
 			out.close();
-		} catch(IllegalAccessException e) {
+		} catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public static void load() throws IOException {
+	public static void load() {
 		File file = PERSISTENT_FILE;
 		if(!file.exists()) {
 			return;
@@ -66,7 +65,7 @@ public class Persistent {
 				}
 			}
 			in.close();
-		} catch(IllegalAccessException | ClassNotFoundException e) {
+		} catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
