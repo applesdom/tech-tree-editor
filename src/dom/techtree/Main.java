@@ -20,17 +20,16 @@ public class Main {
 		TechTreeEditorFrame frame = new TechTreeEditorFrame();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setSize(800, 600);
-		frame.setVisible(true);
-		
 		frame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				try {
+				/*try {
 					Persistent.save();
 				} catch (IOException e1) {
 					e1.printStackTrace();
-				}
+				}*/
 			}
 		});
+		frame.setVisible(true);
 	}
 }

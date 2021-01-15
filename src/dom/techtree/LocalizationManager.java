@@ -9,15 +9,28 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class LocalizationManager {
+	public static Map<String, String> dictionary = new HashMap<String, String>();
+	
 	public static String translate(String key) {
-		return Persistent.locTranslationMap.get(key);
+		return dictionary.get(key);
 	}
 	
 	public static boolean hasTranslation(String key) {
-		return Persistent.locTranslationMap.containsKey(key);
+		return dictionary.containsKey(key);
 	}
 	
-	public static int readLocalizationFile(File file) {
+	public static int load() {
+		if(Persistent.gameDataDirectory == null) {
+			return -1;
+		}
+		
+		File file = new File(Persistent.gameDataDirectory, "Squad/Localization/dictionary.cfg");
+		if(!file.exists()) {
+			return -1;
+		}
+		
+		dictionary.clear();
+		
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			int count = 0;
@@ -26,7 +39,7 @@ public class LocalizationManager {
 				line = line.strip();
 				int splitIndex = line.indexOf(" = ");
 				if(splitIndex > 0) {
-					Persistent.locTranslationMap.put(line.substring(0, splitIndex), line.substring(splitIndex + 3));
+					dictionary.put(line.substring(0, splitIndex), line.substring(splitIndex + 3));
 					count ++;
 				} else {
 					// Ignore malformed lines
@@ -38,9 +51,5 @@ public class LocalizationManager {
 			e.printStackTrace();
 		}
 		return -1;
-	}
-	
-	public static void clear() {
-		Persistent.locTranslationMap.clear();
 	}
 }

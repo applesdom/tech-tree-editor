@@ -54,6 +54,10 @@ public class TechTreeEditorFrame extends JFrame {
 		super();
 		initGUI();
 		initListeners();
+		
+		if(Persistent.gameDataDirectory == null) {
+			importDialog.setVisible(true);
+		}
 	}
 	
 	private void initGUI() {
@@ -202,7 +206,7 @@ public class TechTreeEditorFrame extends JFrame {
 				} else if(e.getSource() == exportMenuItem) {
 					if(exportChooser.showOpenDialog(thisFrame) == JFileChooser.APPROVE_OPTION) {
 			            try {
-			            	TechTree stockTree = TechTreeIO.readAll(new File(Persistent.kspDirectory));
+			            	TechTree stockTree = TechTreeIO.readAll(Persistent.gameDataDirectory);
 							TechTreeIO.write(Persistent.currentTree, stockTree, exportChooser.getSelectedFile());
 						} catch (IOException e1) {
 							e1.printStackTrace();

@@ -48,14 +48,19 @@ public class ImportDialog extends JDialog {
 		this.setResizable(false);
 		this.setVisible(false);
 
-		JLabel label = new JLabel("Full path to KSP directory (containing GameData, Internals, etc.):");
+		JLabel label = new JLabel("Path to GameData folder in local KSP installation:");
 		label.setSize(500, 20);
 		label.setLocation(5, 10);
 		this.add(label);
 		
-		pathField = new JTextField(Persistent.kspDirectory);
+		pathField = new JTextField();
 		pathField.setSize(625, 25);
 		pathField.setLocation(5, 30);
+		if(Persistent.gameDataDirectory == null) {
+			pathField.setText("");
+		} else {
+			pathField.setText(Persistent.gameDataDirectory.getAbsolutePath());
+		}
 		this.add(pathField);
 		
 		browseButton = new JButton("Browse");
@@ -69,7 +74,7 @@ public class ImportDialog extends JDialog {
 		loadModsCheckBox.setSelected(true);
 		this.add(loadModsCheckBox);
 		
-		outputLabel = new JLabel(Persistent.setupDialogOutputText);
+		outputLabel = new JLabel();
 		outputLabel.setSize(525, 25);
 		outputLabel.setLocation(0, 65);
 		outputLabel.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -121,29 +126,30 @@ public class ImportDialog extends JDialog {
 	private void load() {
 		outputLabel.setText("...");
 		
-		// Make sure specified directory exists
+		// Make sure this is the GameData directory
 		File baseDir = new File(pathField.getText());
+		if(!baseDir.getName().equals("GameData")) {
+			outputLabel.setText("ERROR: This isn\'t the \'GameData\' directory!");
+			return;
+		}
+		
+		// Make sure specified directory exists
 		if(!baseDir.exists()) {
 			outputLabel.setText("ERROR: Directory does not exist!");
 			return;
 		}
 		
 		// Make sure requisite subfolders and files exist
-		File gameDataDir = new File(baseDir, "GameData");
-		File partsDir = new File(baseDir, "GameData/Squad/Parts/");
-		File techTreeFile = new File(baseDir, "GameData/Squad/Resources/TechTree.cfg");
-		File iconDir = new File(baseDir, "GameData/Squad/PartList/SimpleIcons/");
-		File locFile = new File(baseDir, "GameData/Squad/Localization/dictionary.cfg/");
-		if(!gameDataDir.exists()) {
-			outputLabel.setText("ERROR: Could not locate \'GameData\' folder! Is this the right directory?");
-			return;
-		} else if(!partsDir.exists() && !techTreeFile.exists() && !iconDir.exists() && !locFile.exists()) {
+		File partsDir = new File(baseDir, "Squad/Parts");
+		File techTreeFile = new File(baseDir, "Squad/Resources/TechTree.cfg");
+		File iconDir = new File(baseDir, "Squad/PartList/SimpleIcons/");
+		File locFile = new File(baseDir, "Squad/Localization/dictionary.cfg/");
+		if(!partsDir.exists() && !techTreeFile.exists() && !iconDir.exists() && !locFile.exists()) {
 			outputLabel.setText("ERROR: \'GameData\' folder contents differ from expected! Could not load tech tree!");
 			return;
 		}
 		
-		IconManager.clear();
-		LocalizationManager.clear();
+		Persistent.gameDataDirectory = baseDir;
 		
 		// Load parts + nodes
 		TechTree tree = new TechTree();
@@ -159,7 +165,7 @@ public class ImportDialog extends JDialog {
 			outputLabel.setText(String.format("Loaded %d parts, %d nodes...", tree.getPartCount(), tree.getNodeCount()));
 			
 			if(loadModsCheckBox.isSelected()) {
-				for(File file : gameDataDir.listFiles()) {
+				for(File file : baseDir.listFiles()) {
 					tree = TechTreeIO.readAll(tree, file);
 					outputLabel.setText(String.format("Loaded %d parts, %d nodes...", tree.getPartCount(), tree.getNodeCount()));
 				}
@@ -172,14 +178,14 @@ public class ImportDialog extends JDialog {
 		// Load icons
 		int iconCount = 0;
 		if(iconDir.exists()) {
-			iconCount += IconManager.readIconDirectory(iconDir);
+			iconCount += IconManager.load();
 		}
 		outputLabel.setText(String.format("Loaded %d parts, %d nodes, %d icons...", tree.getPartCount(), tree.getNodeCount(), iconCount));
 		
 		// Load localization definitions
 		int locCount = 0;
 		if(locFile.exists()) {
-			locCount += LocalizationManager.readLocalizationFile(locFile);
+			locCount += LocalizationManager.load();
 		}
 		
 		outputLabel.setText(String.format("Loaded %d parts, %d nodes, %d icons, and %d LOC values", tree.getPartCount(), tree.getNodeCount(), iconCount, locCount));
