@@ -3,6 +3,7 @@ package dom.techtree;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -72,8 +73,8 @@ public class TechTreeEditor extends JFrame {
 		}
 		
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setSize(800, 600);
-		this.setLocation(0, 0);
+		this.setSize(Persistent.windowSize == null ? new Dimension(800, 600) : Persistent.windowSize);
+		this.setLocation(Persistent.windowLocation == null ? new Point(0, 0) : Persistent.windowLocation);
 		this.setTitle("Tech Tree Editor");
 		this.setIconImage(IconManager.LOGO);
 		this.setLayout(new BorderLayout());
@@ -191,7 +192,7 @@ public class TechTreeEditor extends JFrame {
 		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		sidePanel.add(scrollPane, BorderLayout.CENTER);
 		
-		this.pack();
+		this.setVisible(true);
 		
 		importDialog = new ImportDialog(this);
 		
@@ -239,6 +240,8 @@ public class TechTreeEditor extends JFrame {
 			@Override
 			public void windowClosing(WindowEvent e) {
 				if(e.getSource() == thisFrame) {
+					Persistent.windowSize = thisFrame.getSize();
+					Persistent.windowLocation = thisFrame.getLocation();
 					Persistent.save();
 				} else if(e.getSource() == importDialog) {
 					treePanel.setTechTree(Persistent.currentTree);

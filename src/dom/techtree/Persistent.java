@@ -1,5 +1,7 @@
 package dom.techtree;
 
+import java.awt.Dimension;
+import java.awt.Point;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -19,6 +21,8 @@ public class Persistent {
 	// All fields below MUST be serializable. They will automagically be saved via reflection.
 	public static TechTree currentTree;
 	public static File gameDataDirectory;
+	public static Dimension windowSize;
+	public static Point windowLocation;
 	
 	public static void save() {
 		File file = PERSISTENT_FILE;
