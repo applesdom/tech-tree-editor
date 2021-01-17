@@ -24,14 +24,14 @@ import dom.techtree.TechTreeIO;
 import dom.techtree.data.TechTree;
 
 @SuppressWarnings("serial")
-public class ImportDialog extends JDialog {
+public class SetupDialog extends JDialog {
 	private JTextField pathField;
 	private JButton browseButton, loadButton, okButton;
 	private JCheckBox loadModsCheckBox;
 	private JLabel outputLabel;
 	private JFileChooser fileChooser;
 	
-	public ImportDialog(JFrame parent) {
+	public SetupDialog(JFrame parent) {
 		super(parent, "KSP Directory Setup", JDialog.ModalityType.DOCUMENT_MODAL);
 		initGUI();
 		initListeners();

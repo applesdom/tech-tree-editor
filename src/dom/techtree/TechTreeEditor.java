@@ -33,7 +33,7 @@ import javax.swing.border.EmptyBorder;
 import dom.techtree.data.Node;
 import dom.techtree.data.Part;
 import dom.techtree.data.TechTree;
-import dom.techtree.gui.ImportDialog;
+import dom.techtree.gui.SetupDialog;
 import dom.techtree.gui.NodeInfoPanel;
 import dom.techtree.gui.PartListPanel;
 import dom.techtree.gui.PartPanel;
@@ -42,14 +42,14 @@ import dom.techtree.gui.TechTreePanel;
 
 @SuppressWarnings("serial")
 public class TechTreeEditor extends JFrame {
-	private JMenuItem importMenuItem, exportMenuItem;
+	private JMenuItem setupMenuItem, importMenuItem, exportMenuItem;
 	
 	private TechTreePanel treePanel;
 	private NodeInfoPanel nodeInfoPanel;
 	private JButton addPartButton;
 	private PartListPanel partListPanel;
 	
-	private ImportDialog importDialog;
+	private SetupDialog setupDialog;
 	private PartSelectDialog partSelectDialog;
 	private static JFileChooser exportChooser;
 	
@@ -62,7 +62,7 @@ public class TechTreeEditor extends JFrame {
 		initListeners();
 		
 		if(Persistent.gameDataDirectory == null) {
-			importDialog.setVisible(true);
+			setupDialog.setVisible(true);
 		}
 	}
 	
@@ -91,8 +91,10 @@ public class TechTreeEditor extends JFrame {
 		menuBar.add(editMenu);
 		menuBar.add(helpMenu);
 		
+		setupMenuItem = new JMenuItem("KSP Directory Setup");
 		importMenuItem = new JMenuItem("Import");
 		exportMenuItem = new JMenuItem("Export");
+		fileMenu.add(setupMenuItem);
 		fileMenu.add(importMenuItem);
 		fileMenu.add(exportMenuItem);
 		
@@ -170,7 +172,7 @@ public class TechTreeEditor extends JFrame {
 		
 		this.setVisible(true);
 		
-		importDialog = new ImportDialog(this);
+		setupDialog = new SetupDialog(this);
 		
 		partSelectDialog = new PartSelectDialog(this);
 		
@@ -183,8 +185,10 @@ public class TechTreeEditor extends JFrame {
 		ActionListener actionListener = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(e.getSource() == importMenuItem) {
-					importDialog.setVisible(true);
+				if(e.getSource() == setupMenuItem) {
+					setupDialog.setVisible(true);
+				} else if(e.getSource() == importMenuItem) {
+					//importDialog.setVisible(true);
 				} else if(e.getSource() == exportMenuItem) {
 					if(exportChooser.showOpenDialog(thisFrame) == JFileChooser.APPROVE_OPTION) {
 			            try {
@@ -206,6 +210,7 @@ public class TechTreeEditor extends JFrame {
 				}
 			}
 		};
+		setupMenuItem.addActionListener(actionListener);
 		importMenuItem.addActionListener(actionListener);
 		exportMenuItem.addActionListener(actionListener);
 		addPartButton.addActionListener(actionListener);
@@ -217,13 +222,13 @@ public class TechTreeEditor extends JFrame {
 					Persistent.windowSize = thisFrame.getSize();
 					Persistent.windowLocation = thisFrame.getLocation();
 					Persistent.save();
-				} else if(e.getSource() == importDialog) {
+				} else if(e.getSource() == setupDialog) {
 					treePanel.setTechTree(Persistent.currentTree);
 				}
 			}
 		};
 		this.addWindowListener(windowAdapter);
-		importDialog.addWindowListener(windowAdapter);
+		setupDialog.addWindowListener(windowAdapter);
 	}
 	
 	public static void main(String[] args) {
