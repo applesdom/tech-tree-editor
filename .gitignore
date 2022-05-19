@@ -1,5 +1,3 @@
-# Ignore all Eclipse files (.classpath, .project, and .settings)
 .*
-
-# Ignore compiled files
 /bin/
+*.lnk
