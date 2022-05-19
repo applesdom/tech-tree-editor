@@ -7,8 +7,9 @@ public class Parent implements Serializable {
 
 	public static final int NONE = 0, TOP = 1, RIGHT = 2, BOTTOM = 3, LEFT = 4;
 	
-	public String id;
-	public int lineTo, lineFrom;
+	public String id;       // ID of parent tech node
+	public int    lineTo;   // Which side to connect to on parent
+	public int    lineFrom; // Which side to connect to on child
 	
 	public Parent() {}
 	
