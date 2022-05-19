@@ -6,16 +6,12 @@ import java.awt.Font;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -24,9 +20,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
@@ -36,7 +29,6 @@ import dom.techtree.data.TechTree;
 import dom.techtree.gui.SetupDialog;
 import dom.techtree.gui.NodeInfoPanel;
 import dom.techtree.gui.PartListPanel;
-import dom.techtree.gui.PartPanel;
 import dom.techtree.gui.PartSelectDialog;
 import dom.techtree.gui.TechTreePanel;
 
