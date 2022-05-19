@@ -19,7 +19,6 @@ import dom.techtree.Persistent;
 import dom.techtree.data.Node;
 import dom.techtree.data.Part;
 
-@SuppressWarnings("serial")
 public class PartListPanel extends JScrollPane {
 	private JPanel innerPanel;
 	

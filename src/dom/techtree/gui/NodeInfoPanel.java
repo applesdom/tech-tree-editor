@@ -29,7 +29,6 @@ import dom.techtree.Persistent;
 import dom.techtree.data.Node;
 import dom.techtree.data.Part;
 
-@SuppressWarnings("serial")
 public class NodeInfoPanel extends JPanel {
 	private static final Color NORMAL_FIELD_COLOR = new Color(255, 255, 255),
 			   				   INVALID_FIELD_COLOR = new Color(255, 192, 192),

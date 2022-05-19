@@ -20,7 +20,6 @@ import dom.techtree.data.Node;
 import dom.techtree.data.Parent;
 import dom.techtree.data.TechTree;
 
-@SuppressWarnings("serial")
 public class TechTreePanel extends JPanel {
 	// Constant values to control the look and feel of this component
 	private static final double MIN_SCALE = 0.25,

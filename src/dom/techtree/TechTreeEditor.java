@@ -32,7 +32,6 @@ import dom.techtree.gui.PartListPanel;
 import dom.techtree.gui.PartSelectDialog;
 import dom.techtree.gui.TechTreePanel;
 
-@SuppressWarnings("serial")
 public class TechTreeEditor extends JFrame {
 	private JMenuItem setupMenuItem, importMenuItem, exportMenuItem;
 	

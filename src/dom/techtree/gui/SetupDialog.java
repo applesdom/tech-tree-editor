@@ -23,7 +23,6 @@ import dom.techtree.Persistent;
 import dom.techtree.TechTreeIO;
 import dom.techtree.data.TechTree;
 
-@SuppressWarnings("serial")
 public class SetupDialog extends JDialog {
 	private JTextField pathField;
 	private JButton browseButton, loadButton, okButton;

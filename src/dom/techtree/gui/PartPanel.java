@@ -18,7 +18,6 @@ import javax.swing.event.DocumentListener;
 import dom.techtree.LocalizationManager;
 import dom.techtree.data.Part;
 
-@SuppressWarnings("serial")
 public class PartPanel extends JPanel {
 	private static final Color NORMAL_FIELD_COLOR = new Color(255, 255, 255),
 			   				   INVALID_FIELD_COLOR = new Color(255, 192, 192),
