@@ -230,8 +230,8 @@ public class TechTreeIO {
 		
 		// Read parent fields
 		parent.id = br.readLine().split("//")[0].trim().substring(11);
-		parent.lineFrom = parseSide(br.readLine().split("//")[0].trim().substring(11));
-		parent.lineTo = parseSide(br.readLine().split("//")[0].trim().substring(9));
+		parent.lineFrom = Parent.Side.valueOf(br.readLine().split("//")[0].trim().substring(11));
+		parent.lineTo = Parent.Side.valueOf(br.readLine().split("//")[0].trim().substring(9));
 		
 		br.readLine();	// Consume closing bracket
 		return parent;
@@ -309,37 +309,6 @@ public class TechTreeIO {
 		
 		return part;
 	}
-	private static int parseSide(String side) {
-		switch(side) {
-		case "TOP":
-			return Parent.TOP;
-		case "RIGHT":
-			return Parent.RIGHT;
-		case "BOTTOM":
-			return Parent.BOTTOM;
-		case "LEFT":
-			return Parent.LEFT;
-		case "NONE":
-		default:
-			return Parent.NONE;
-		}
-	}
-	
-	// Converts side enums into strings
-	private static String sideToString(int side) {
-		switch(side) {
-		case Parent.TOP:
-			return "TOP";
-		case Parent.RIGHT:
-			return "RIGHT";
-		case Parent.BOTTOM:
-			return "BOTTOM";
-		case Parent.LEFT:
-			return "LEFT";
-		default:
-			return "NONE";
-		}
-	}
 	
 	public static void write(TechTree tree, TechTree base, File file) throws FileNotFoundException {
 		write(tree, base, new FileOutputStream(file));
@@ -378,8 +347,8 @@ public class TechTreeIO {
 					pw.println("\t\tParent");
 					pw.println("\t\t{");
 					pw.printf("\t\t\tparentID = %s\n", parent.id);
-					pw.printf("\t\t\tlineFrom = %s\n", sideToString(parent.lineFrom));
-					pw.printf("\t\t\tlineTo = %s\n", sideToString(parent.lineTo));
+					pw.printf("\t\t\tlineFrom = %s\n", parent.lineFrom.name());
+					pw.printf("\t\t\tlineTo = %s\n", parent.lineTo.name());
 					pw.println("\t\t}");
 				}
 				pw.println("\t}");
@@ -457,8 +426,8 @@ public class TechTreeIO {
 							pw.println("\t\tParent");
 							pw.println("\t\t{");
 							pw.printf("\t\t\tparentfID = %s\n", parent.id);
-							pw.printf("\t\t\tlineFrom = %s\n", sideToString(parent.lineFrom));
-							pw.printf("\t\t\tlineTo = %s\n", sideToString(parent.lineTo));
+							pw.printf("\t\t\tlineFrom = %s\n", parent.lineFrom.name());
+							pw.printf("\t\t\tlineTo = %s\n", parent.lineTo.name());
 							pw.println("\t\t}");
 						}
 					}

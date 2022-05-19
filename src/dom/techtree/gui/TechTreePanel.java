@@ -49,7 +49,8 @@ public class TechTreePanel extends JPanel {
 	
 	private TechTree tree;
 	private Node selectedNode = null, hoverNode= null;
-	private int selectedSide = Parent.NONE;
+	private boolean drawingLine = false;
+	private Parent.Side selectedSide = Parent.Side.TOP;
 	
 	private Point mousePos = null;
 	
@@ -111,28 +112,26 @@ public class TechTreePanel extends JPanel {
 			public void mouseReleased(MouseEvent e) {
 				if(SwingUtilities.isLeftMouseButton(e)) {
 					// Check if a new node connection is being formed
-					if(selectedSide != Parent.NONE) {
+					if(drawingLine == true) {
 						// Check if there is a valid terminal node to connect to
 						Point.Double globalPos = convertToGlobalSpace(e.getPoint());
 						Node node = getNodeAtPoint(globalPos);
 						if(node != null && node != selectedNode) {
 							// Determine which side of the terminal node to connect to
-							int side = getSideAtPoint(node, globalPos);
-							if(side == Parent.NONE) {
-								double relX = node.pos.x - selectedNode.pos.x,
-									   relY = node.pos.y - selectedNode.pos.y;
-								if(Math.abs(relX) > Math.abs(relY)) {
-									if(relX < 0) {
-										side = Parent.RIGHT;
-									} else {
-										side = Parent.LEFT;
-									}
+							Parent.Side side = Parent.Side.TOP;
+							double relX = node.pos.x - selectedNode.pos.x,
+									relY = node.pos.y - selectedNode.pos.y;
+							if(Math.abs(relX) > Math.abs(relY)) {
+								if(relX < 0) {
+									side = Parent.Side.RIGHT;
 								} else {
-									if(relY < 0) {
-										side = Parent.BOTTOM;
-									} else {
-										side = Parent.TOP;
-									}
+									side = Parent.Side.LEFT;
+								}
+							} else {
+								if(relY < 0) {
+									side = Parent.Side.BOTTOM;
+								} else {
+									side = Parent.Side.TOP;
 								}
 							}
 							
@@ -147,7 +146,7 @@ public class TechTreePanel extends JPanel {
 							repaint();
 						}
 					}
-					selectedSide = Parent.NONE;
+					drawingLine = false;
 				}
 			}	
 			
@@ -174,7 +173,7 @@ public class TechTreePanel extends JPanel {
 					if(selectedNode == null) {
 						viewPos.x -= deltaX / scale;
 						viewPos.y += deltaY / scale;
-					} else if(selectedSide == Parent.NONE){
+					} else if(drawingLine == false){
 						selectedNode.pos.x += deltaX / scale;
 						selectedNode.pos.y -= deltaY / scale;
 					}
@@ -288,7 +287,7 @@ public class TechTreePanel extends JPanel {
 		}
 			
 		// Draw arrow for connection in progress
-		if(selectedNode != null && selectedSide != Parent.NONE && mousePos != null) {
+		if(selectedNode != null && drawingLine == true && mousePos != null) {
 			Point.Double p1 = getConnectionHandlePos(selectedNode, selectedSide);
 			p1.y *= -1;
 			Point.Double globalMousePos = convertToGlobalSpace(mousePos);
@@ -307,8 +306,8 @@ public class TechTreePanel extends JPanel {
 		// Draw four connection handles around hovered node
 		if(hoverNode != null) {
 			g2d.setColor(CONNECTION_HANDLE_COLOR);
-			for(int i = 1; i <= 4; i ++) {
-				Point.Double handlePos = getConnectionHandlePos(hoverNode, i);
+			for(Parent.Side side : Parent.Side.values()) {
+				Point.Double handlePos = getConnectionHandlePos(hoverNode, side);
 				g2d.fillOval((int) (handlePos.x - 0.5*CONNECTION_HANDLE_SIZE),
 						(int) (-handlePos.y - 0.5*CONNECTION_HANDLE_SIZE),
 						(int) CONNECTION_HANDLE_SIZE, (int) CONNECTION_HANDLE_SIZE);
@@ -335,34 +334,34 @@ public class TechTreePanel extends JPanel {
 	}
 	
 	// Returns which side of the given node is located at the given point, or NONE if none are close
-	private int getSideAtPoint(Node node, Point.Double p) {
-		for(int i = 1; i <= 4; i ++) {
-			Point.Double smallNodePos = getConnectionHandlePos(node, i);
+	private Parent.Side getSideAtPoint(Node node, Point.Double p) {
+		for(Parent.Side side : Parent.Side.values()) {
+			Point.Double smallNodePos = getConnectionHandlePos(node, side);
 			if(p.x > smallNodePos.x - FRINGE_SIZE && p.x < smallNodePos.x + CONNECTION_HANDLE_SIZE*node.scale + FRINGE_SIZE &&
 			   p.y > smallNodePos.y - FRINGE_SIZE && p.y < smallNodePos.y + CONNECTION_HANDLE_SIZE*node.scale + FRINGE_SIZE) {
-				return i;
+				return side;
 			}
 		}
-		return Parent.NONE;
+		return Parent.Side.TOP;
 	}
 	
 	
 	// Returns the location of the connection handle on the given side of a node
-	private Point.Double getConnectionHandlePos(Node node, int side) {
+	private Point.Double getConnectionHandlePos(Node node, Parent.Side side) {
 		Point.Double p = new Point.Double(node.pos.x, node.pos.y);
 		switch(side) {
-		case Parent.TOP:
+		case TOP:
 			p.x += 0.5*NODE_SIZE*node.scale;
 			break;
-		case Parent.RIGHT:
+		case RIGHT:
 			p.x += NODE_SIZE*node.scale;
 			p.y -= 0.5*NODE_SIZE*node.scale;
 			break;
-		case Parent.BOTTOM:
+		case BOTTOM:
 			p.x += 0.5*NODE_SIZE*node.scale;
 			p.y -= NODE_SIZE*node.scale;
 			break;
-		case Parent.LEFT:
+		case LEFT:
 			p.y -= 0.5*NODE_SIZE*node.scale;
 			break;
 		}
