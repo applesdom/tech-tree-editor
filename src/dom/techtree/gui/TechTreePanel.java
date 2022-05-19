@@ -200,8 +200,15 @@ public class TechTreePanel extends JPanel {
 				scale *= Math.pow(SCALE_RATE, -e.getWheelRotation());
 				if(scale > MAX_SCALE) { scale = MAX_SCALE; }
 				if(scale < MIN_SCALE) { scale = MIN_SCALE; }
-				viewPos.x -= 0.5*(1/scale - 1/prevScale)*getWidth();
-				viewPos.y += 0.5*(1/scale - 1/prevScale)*getHeight();
+
+				// Zoom to center
+				//viewPos.x -= 0.5*(1/scale - 1/prevScale)*getWidth();
+				//viewPos.y += 0.5*(1/scale - 1/prevScale)*getHeight();
+
+				// Zoom to mouse cursor
+				viewPos.x -= (1/scale - 1/prevScale)*e.getX();
+				viewPos.y += (1/scale - 1/prevScale)*e.getY();
+
 				repaint();
 			}
 		};
